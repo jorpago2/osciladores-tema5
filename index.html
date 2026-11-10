@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4f0">
+  <meta name="description" content="Laboratorio interactivo del Tema 5 de CSAF. Explora el arranque de un oscilador de resistencia negativa, la estabilización de amplitud y el ruido de fase.">
+  <title>Oscila · Laboratorio de osciladores</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#lab">Saltar al laboratorio</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Oscila, inicio"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#6853cf"/><path d="M5 20c5-19 10-19 15 0s10 19 15 0" fill="none" stroke="white" stroke-width="2.5"/></svg><span>oscila<span class="brand-dot">.</span></span></a>
+    <div class="course">CSAF <span>/</span> TEMA 05 <span class="course-detail">/ OSCILADORES</span></div>
+    <a class="source-link" href="https://github.com/jorpago2/osciladores-tema5" target="_blank" rel="noopener">Ver en GitHub <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">UN LABORATORIO PARA ENTENDER, TOCANDO</p><h1>De una pequeña perturbación<br>a una <em>oscilación sostenida.</em></h1><p class="intro-copy">Aporta energía, encuentra el equilibrio y descubre por qué ningún reloj es perfecto.</p></div>
+      <div class="intro-note"><span class="spark">∿</span><p>Un circuito.<br>Tres formas de mirarlo.</p><span>Explora a tu ritmo</span></div>
+    </section>
+    <div class="lab-heading"><div class="lab-label"><span class="live-dot"></span> TU BANCO DE PRUEBAS</div><button class="text-button" id="share">Copiar enlace con ajustes <span aria-hidden="true">↗</span></button></div>
+    <nav class="tabs" aria-label="Vistas del laboratorio" role="tablist">
+      <button id="tab-start" role="tab" aria-selected="true" aria-controls="panel-start" data-tab="start"><span>01</span> El arranque</button>
+      <button id="tab-energy" role="tab" aria-selected="false" aria-controls="panel-energy" data-tab="energy" tabindex="-1"><span>02</span> El equilibrio</button>
+      <button id="tab-noise" role="tab" aria-selected="false" aria-controls="panel-noise" data-tab="noise" tabindex="-1"><span>03</span> El ruido de fase</button>
+    </nav>
+    <div id="lab">
+      <section id="panel-start" role="tabpanel" aria-labelledby="tab-start" class="panel">
+        <div class="workspace">
+          <div class="visual-column">
+            <article class="card circuit-card">
+              <div class="card-head"><div><p class="eyebrow">EL MODELO</p><h2>Una fuente de energía que compensa pérdidas</h2></div><span class="pill">Equivalente en paralelo</span></div>
+              <div class="circuit-wrap">
+                <svg class="circuit" viewBox="0 0 760 225" role="img" aria-labelledby="circuit-title"><title id="circuit-title">Circuito paralelo. Bloque activo de conductancia negativa conectado al resonador formado por resistencia de pérdidas, inductancia y condensador.</title>
+                  <rect x="346" y="22" width="388" height="173" rx="20" fill="#f4f3f9"/>
+                  <text x="540" y="46" text-anchor="middle" class="svg-small">RESONADOR · ALMACENA E INTERCAMBIA ENERGÍA</text>
+                  <path d="M155 72H684 M155 173H684" class="wire"/>
+                  <rect x="60" y="80" width="192" height="84" rx="15" class="active-block"/>
+                  <path d="M155 72v8m0 84v9" class="wire"/>
+                  <text x="155" y="112" text-anchor="middle" class="svg-label purple">Amplificador</text><text x="155" y="141" text-anchor="middle" class="svg-formula purple">G<tspan baseline-shift="sub" font-size="12">d</tspan>(A) &lt; 0</text>
+                  <path d="M92 55h126" class="power-arrow"/><path d="m210 50 8 5-8 5" class="power-arrow"/><text x="155" y="42" text-anchor="middle" class="svg-small">ENERGÍA DE LA ALIMENTACIÓN</text>
+                  <path d="M405 72v25m0 51v25" class="wire"/><path d="M395 97h20v51h-20Z" class="loss-element"/>
+                  <text x="432" y="121" class="svg-label">R<tspan baseline-shift="sub" font-size="11">p</tspan></text><text x="405" y="213" text-anchor="middle" class="svg-small">PÉRDIDAS</text>
+                  <path d="M540 72v16c-24 0-24 14 0 14c-24 0-24 14 0 14c-24 0-24 14 0 14c-24 0-24 14 0 14v29" class="wire"/><text x="555" y="121" class="svg-label">L</text>
+                  <path d="M684 72v44m-19 0h38m-38 13h38m-19 0v44" class="wire"/><text x="713" y="127" class="svg-label">C</text>
+                  <circle cx="302" cy="72" r="4" fill="#6853cf"/><path d="M302 72V44" class="wire"/><text x="302" y="32" text-anchor="middle" class="svg-label purple">v(t)</text>
+                  <circle id="energy-dot" cx="275" cy="72" r="5" fill="#6853cf"/>
+                </svg>
+              </div>
+              <p class="caption">El bloque activo recibe energía de la alimentación. Visto desde el resonador, se comporta como una resistencia negativa.</p>
+            </article>
+            <article class="card scope-card">
+              <div class="card-head"><div><p class="eyebrow">DEL RUIDO AL RÉGIMEN PERMANENTE</p><h2>La amplitud cuenta la historia</h2></div><div class="transport"><button id="play" class="icon-button" aria-label="Pausar animación">Ⅱ</button><button id="restart" class="icon-button" aria-label="Reiniciar arranque">↺</button></div></div>
+              <div class="plot-key"><span class="legend purple-key">Envolvente A(t)</span><span class="legend gray-key">Amplitud de equilibrio</span><span class="plot-time" id="time-readout"></span></div>
+              <canvas id="envelope" height="220" aria-label="Evolución de la amplitud con el tiempo, desde una pequeña perturbación hasta el equilibrio"></canvas>
+              <div class="wave-head"><span>UN VISTAZO A LA SEÑAL v(t)</span><span id="wave-scale"></span></div>
+              <canvas id="wave" height="110" aria-label="Detalle temporal de la señal sinusoidal"></canvas>
+              <p class="caption">El arranque se ralentiza para observarlo. La pequeña semilla inicial representa una perturbación que puede proceder del ruido.</p>
+            </article>
+          </div>
+          <aside class="card controls"><div class="controls-title"><h2>Hazlo oscilar</h2><span class="knob-icon">⌘</span></div><p class="control-intro">La clave está en aportar más energía de la que se pierde.</p>
+            <div class="preset-group" aria-label="Escenarios de arranque"><button data-preset="off">Se apaga</button><button data-preset="threshold">Umbral</button><button class="selected" data-preset="on">Oscila</button></div>
+            <label class="slider-label" for="gain">Compensación inicial <output id="gain-out"></output></label><input id="gain" type="range" min="0" max="3" step="0.01" value="1.65"><div class="range-labels"><span>Más pérdidas</span><span>Más aporte</span></div><p class="field-help">g = |G<sub>d</sub>(0)| / G<sub>r</sub>. El umbral es g = 1.</p>
+            <label class="slider-label" for="q">Calidad del resonador <output id="q-out"></output></label><input id="q" type="range" min="20" max="200" step="1" value="60"><p class="field-help">Un Q mayor conserva la energía durante más ciclos. Aquí g se mantiene constante.</p>
+            <label class="slider-label" for="freq">Frecuencia natural <output id="freq-out"></output></label><input id="freq" type="range" min="1" max="100" step="1" value="10">
+            <div class="status-box" id="start-status" aria-live="polite"></div>
+            <div class="mini-specs"><div><span>Condensador</span><strong>100 pF</strong></div><div><span>Inductancia</span><strong id="inductance"></strong></div><div><span>Pérdidas R<sub>p</sub></span><strong id="resistance"></strong></div></div>
+            <button class="outline-button" id="export-envelope">↓ Descargar datos del arranque</button>
+          </aside>
+        </div>
+        <div class="insight-strip"><div><span class="insight-number">01</span><p><strong>Todo empieza con algo pequeño</strong>Una perturbación proporciona la semilla. Sin ella, el modelo ideal se quedaría en cero.</p></div><div><span class="insight-number">02</span><p><strong>La amplitud crece si g &gt; 1</strong>La conductancia negativa supera las pérdidas y la energía aumenta ciclo a ciclo.</p></div><div><span class="insight-number">03</span><p><strong>La no linealidad pone el límite</strong>Al aumentar la amplitud, disminuye la compensación efectiva hasta equilibrar las pérdidas.</p></div></div>
+      </section>
+      <section id="panel-energy" role="tabpanel" aria-labelledby="tab-energy" class="panel" hidden>
+        <div class="workspace"><div class="visual-column">
+          <article class="card"><div class="card-head"><div><p class="eyebrow">UN EQUILIBRIO QUE SE RECUPERA</p><h2>¿Por qué la amplitud deja de crecer?</h2></div><span class="pill">No linealidad</span></div><div class="plot-key"><span class="legend purple-key">|G<sub>d</sub>(A)| / G<sub>r</sub></span><span class="legend orange-key">Pérdidas normalizadas = 1</span></div><canvas id="balance" height="280" aria-label="Conductancia negativa frente a amplitud. El cruce con las pérdidas determina el equilibrio estable"></canvas><p class="caption" id="balance-caption">A la izquierda del cruce, la amplitud crece. A la derecha, decrece. Así se recupera el equilibrio después de una perturbación.</p></article>
+          <article class="card energy-card"><div class="card-head"><div><p class="eyebrow">DENTRO DEL RESONADOR</p><h2>La energía va y viene</h2></div><button id="energy-play" class="icon-button" aria-label="Pausar intercambio de energía">Ⅱ</button></div><div class="energy-visual"><div class="energy-cell"><span class="energy-symbol">C</span><div class="energy-tank"><div id="electric-fill"></div></div><strong>Campo eléctrico</strong><span id="electric-value"></span></div><div class="energy-transfer"><span>⇄</span><p>El condensador y la bobina<br>se turnan al almacenarla</p></div><div class="energy-cell"><span class="energy-symbol">L</span><div class="energy-tank magnetic"><div id="magnetic-fill"></div></div><strong>Campo magnético</strong><span id="magnetic-value"></span></div></div><p class="caption">Intercambio normalizado de un LC ideal con amplitud fija no nula, independiente de la amplitud de prueba. En el oscilador real, el amplificador repone las pérdidas.</p></article>
+        </div><aside class="card controls"><h2>Encuentra el punto estable</h2><p class="control-intro">Mueve la amplitud de prueba y compara el aporte con las pérdidas.</p>
+          <label class="slider-label" for="energy-gain">Compensación inicial <output id="energy-gain-out"></output></label><input id="energy-gain" type="range" min="0" max="3" step="0.01" value="1.65">
+          <label class="slider-label" for="probe">Amplitud de prueba <output id="probe-out"></output></label><input id="probe" type="range" min="0" max="2" step="0.01" value="0.4">
+          <div class="status-box" id="balance-status" aria-live="polite"></div><button id="equilibrium" class="primary-button">Llevar al equilibrio</button>
+          <div class="formula-card"><span>AMPLITUD FINAL</span><div>A<sub>∞</sub> = A<sub>s</sub> √(g − 1)</div><p>Para g &gt; 1. En este modelo A<sub>s</sub> = 1 V.</p><strong id="aeq"></strong></div>
+          <p class="field-help">En paralelo, el arranque exige |G<sub>d</sub>| &gt; G<sub>r</sub>, equivalente a |R<sub>d</sub>| &lt; R<sub>p</sub>. La desigualdad en resistencias se invierte respecto al modelo serie.</p>
+        </aside></div>
+      </section>
+      <section id="panel-noise" role="tabpanel" aria-labelledby="tab-noise" class="panel" hidden>
+        <div class="workspace"><div class="visual-column">
+          <article class="card"><div class="card-head"><div><p class="eyebrow">LA PUREZA DE LA OSCILACIÓN</p><h2>Una portadora nunca está completamente sola</h2></div><span class="pill">Modelo de Leeson</span></div><div class="plot-key"><span class="legend purple-key">ℒ(Δf)</span><span class="legend gray-key">Suelo blanco</span><span class="legend orange-key" id="saved-legend" hidden>Comparación guardada</span></div><canvas id="spectrum" height="290" aria-label="Ruido de fase de banda lateral única en dBc por hercio frente a separación de la portadora en escala logarítmica"></canvas><div class="spectrum-metrics"><div><span id="offset-label"></span><strong id="noise-readout"></strong></div><div><span>Frecuencia de Leeson</span><strong id="leeson-readout"></strong></div><div><span id="jitter-band">Jitter RMS · 1 kHz–1 MHz</span><strong id="jitter-readout"></strong></div></div><p class="caption">Cada punto indica la potencia de ruido en una banda de 1 Hz, relativa a la portadora. Un valor más negativo significa menos ruido. Δf es la separación respecto a f₀.</p><div class="button-row"><button class="outline-button" id="save-curve">＋ Guardar curva para comparar</button><button class="text-button" id="clear-curve" hidden>Borrar comparación</button><button class="text-button" id="export-noise">↓ CSV</button></div></article>
+          <article class="card"><div class="card-head"><div><p class="eyebrow">EL MISMO CONCEPTO, EN EL TIEMPO</p><h2 id="phase-heading">Los cruces por cero ya no llegan a tiempo</h2></div><div class="transport"><button id="phase-play" class="icon-button" aria-label="Pausar fluctuaciones">Ⅱ</button><div class="segmented"><button data-mod="pm" class="selected">Fase</button><button data-mod="am">Amplitud</button></div></div></div><div class="phase-layout"><div><div class="plot-key"><span class="legend gray-key">Ideal</span><span class="legend purple-key">Con fluctuaciones</span></div><canvas id="phase-wave" height="170" aria-label="Comparación conceptual entre señal ideal y señal con ruido de fase o de amplitud"></canvas></div><canvas id="phasor" height="195" aria-label="Fasor con perturbaciones angulares para ruido de fase y radiales para ruido de amplitud"></canvas></div><label class="exaggeration" for="exaggeration">Exageración visual <input type="range" id="exaggeration" min="0" max="1" step="0.01" value="0.45"><output id="exaggeration-out">45 %</output></label><p class="caption" id="phase-caption">En fase cambia el ángulo del fasor, mientras su longitud permanece constante. Esta animación conceptual exagera las fluctuaciones y no sintetiza el espectro de Leeson de arriba.</p></article>
+        </div><aside class="card controls"><h2>Esculpe el espectro</h2><p class="control-intro">Cambia una variable, guarda la curva y compara el resultado.</p>
+          <label class="slider-label" for="noise-q">Calidad Q <output id="noise-q-out"></output></label><input id="noise-q" type="range" min="20" max="200" step="1" value="60">
+          <label class="slider-label" for="noise-freq">Frecuencia f₀ <output id="noise-freq-out"></output></label><input id="noise-freq" type="range" min="1" max="100" step="1" value="10">
+          <label class="slider-label" for="power">Potencia en el resonador <output id="power-out"></output></label><input id="power" type="range" min="-10" max="20" step="1" value="0">
+          <label class="slider-label" for="nf">Figura de ruido <output id="nf-out"></output></label><input id="nf" type="range" min="0" max="20" step="1" value="6">
+          <label class="slider-label" for="flicker">Esquina de flicker <output id="flicker-out"></output></label><input id="flicker" type="range" min="0" max="5" step="0.1" value="3">
+          <label class="slider-label" for="offset">Punto de lectura Δf <output id="offset-out"></output></label><input id="offset" type="range" min="2" max="7" step="0.05" value="4">
+          <div class="takeaway"><span>PRUEBA ESTO</span><p>Guarda la curva y duplica Q. Cerca de la portadora, el ruido baja aproximadamente 6 dB. Lejos de ella, el suelo apenas cambia.</p></div>
+          <p class="field-help" id="noise-assumptions"></p>
+        </aside></div>
+      </section>
+      <section class="challenge"><div class="challenge-intro"><span class="eyebrow">ANTES DE MOVER EL CONTROL</span><h2 id="challenge-question"></h2></div><div class="challenge-options" id="challenge-options"></div><p id="challenge-feedback" aria-live="polite"></p></section>
+      <details class="model-details"><summary>Un poco más de física <span>Modelo, ecuaciones y fuentes</span></summary><div class="details-grid"><div><h3>Una aproximación para aprender</h3><p>Representamos el resonador mediante un RLC paralelo con C = 100 pF, f₀ = 1/(2π√LC), G<sub>r</sub> = 1/R<sub>p</sub> = ω₀C/Q y susceptancia total nula en resonancia. El bloque activo aporta G<sub>d</sub>(A) = −gG<sub>r</sub> / [1 + (A/A<sub>s</sub>)²].</p><p class="equation">dA/dt = (ω₀/2Q) [g/(1 + (A/A<sub>s</sub>)²) − 1] A</p><p>La envolvente promediada supone una oscilación casi sinusoidal y Q suficientemente alto. La semilla inicial es 10 mV. En g = 1, la saturación hace que una amplitud finita decaiga lentamente. No se modelan transistores, armónicos, desplazamiento de frecuencia ni conversión AM–PM.</p></div><div><h3>Ruido de fase y jitter</h3><p>Usamos la convención del Tema 5 con F lineal, P<sub>s</sub> en vatios y el factor 1/2 de banda lateral única.</p><p class="equation">ℒ(Δf) = 10 log₁₀ { [FkT/(2P<sub>s</sub>)] [1 + (f₀/(2QΔf))²] [1 + f<sub>c</sub>/Δf] }</p><p class="equation">σ<sub>φ</sub>² = 2 ∫ 10<sup>ℒ(Δf)/10</sup> dΔf &nbsp; · &nbsp; σ<sub>t</sub> = σ<sub>φ</sub>/(2πf₀)</p><p>El espectro es una predicción didáctica para una portadora estacionaria. La banda de jitter va de 1 kHz al menor valor entre 1 MHz y 0,1 f₀. El límite de separación 0,1 f₀ es un margen didáctico, no una frontera física universal. El modelo de pequeña fase no describe el centro exacto de la portadora, espurias ni todos los mecanismos de ruido de un circuito real.</p><p>Basado en el Tema 5 de CSAF y en <a href="https://arxiv.org/abs/physics/0502143" target="_blank" rel="noopener">The Leeson effect, de E. Rubiola</a>. Consulta también <a href="https://www.analog.com/en/resources/analog-dialogue/articles/pll-for-high-frequency-receivers-and-transmitters-2.html" target="_blank" rel="noopener">la introducción al ruido de fase de Analog Devices</a>.</p></div></div></details>
+    </div>
+    <footer><span>oscila. <span class="footer-muted">Hecho para explorar el Tema 5 de CSAF</span></span><span>Modelo didáctico · Sin mediciones experimentales</span></footer>
+  </main>
+  <div id="toast" role="status"></div>
+</body>
+</html>

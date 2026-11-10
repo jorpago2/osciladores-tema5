@@ -1,0 +1,11 @@
+{
+  "name": "oscila-tema5",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Laboratorio interactivo de osciladores por resistencia negativa y ruido de fase",
+  "scripts": {
+    "test": "node --test model.test.mjs",
+    "start": "node serve.mjs"
+  }
+}
