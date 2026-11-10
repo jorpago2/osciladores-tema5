@@ -1,6 +1,6 @@
 import { initCorners } from './corners.mjs?v=20261110-corners1';
 import { initRF } from './rf.mjs?v=20261110-corners1';
-import { derived, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs?v=20261110-rf1';
+import { derived, powerBalance, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs?v=20261110-power1';
 
 const $ = id => document.getElementById(id);
 const colors = { purple: '#6853cf', orange: '#c57b43', ink: '#514b60', muted: '#9a92a6', grid: '#eeeaf3', gray: '#bfbac9', green: '#3c8071' };
@@ -134,8 +134,18 @@ function drawStart() {
   if(wave)line(wave,Array.from({length:500},(_,i)=>[i/499*5,amplitude*Math.cos(2*Math.PI*(i/499*5-progress*cycles))]),colors.purple,1.8);
   $('time-readout').textContent=`t = ${format(progress*duration*1e9,1)} ns`;
   $('wave-scale').textContent=`A = ${amplitude<.1?format(amplitude*1000,2)+' mV':format(amplitude,3)+' V'}`;
-  $('energy-dot').setAttribute('cx',String(260+(elapsed*.0001%1)*85));
-  $('energy-dot').setAttribute('opacity',state.gain===0?'0':'1');
+  drawPowerBalance(amplitude);
+}
+function drawPowerBalance(amplitude) {
+  const p=powerBalance(amplitude,state), maximum=Math.max(p.input,p.loss);
+  const powerText=v=>{const a=Math.abs(v);if(a===0)return '0 W';if(a<1e-12)return '< 0,001 nW';return a>=1e-3?`${format(a*1e3,2)} mW`:a>=1e-6?`${format(a*1e6,2)} µW`:`${format(a*1e9,3)} nW`;};
+  $('power-input-value').textContent=powerText(p.input);$('power-loss-value').textContent=powerText(p.loss);
+  $('power-input-bar').style.width=`${maximum>0?100*p.input/maximum:0}%`;$('power-loss-bar').style.width=`${maximum>0?100*p.loss/maximum:0}%`;
+  $('power-scale-max').textContent=powerText(maximum);
+  const nearBalance=state.gain>1&&Math.abs(p.ratio-1)<.001;
+  $('power-direction').textContent=amplitude===0?'Sin perturbación inicial':nearBalance?'Aporte y pérdidas casi iguales':p.net>0?'La amplitud crece':state.gain===1?'La amplitud decrece lentamente':'La amplitud disminuye';
+  $('power-net-value').textContent=p.net!==0&&Math.abs(p.net)<1e-12?`Balance ${p.net>0?'positivo':'negativo'} < 0,001 nW`:`Balance ${p.net>0?'+':p.net<0?'−':''}${powerText(p.net)}`;
+  $('power-direction').classList.toggle('power-decreasing',p.net<0&&!nearBalance);
 }
 function drawEnergy() {
   const p=plot('balance',{xmax:2,ymax:3.3,yticks:[0,1,2,3],xticks:[0,.5,1,1.5,2],xformat:v=>format(v,1),yformat:v=>String(v),xlabel:'Amplitud de pico · V',ylabel:'Conductancia / Gᵣ'});
@@ -214,6 +224,7 @@ document.querySelectorAll('[data-preset]').forEach(button=>button.addEventListen
 function updatePlay(){$('play').textContent=playing?'Ⅱ':'▶';$('play').setAttribute('aria-label',playing?'Pausar animación':'Reproducir animación');$('energy-play').textContent=energyPlaying?'Ⅱ':'▶';$('energy-play').setAttribute('aria-label',energyPlaying?'Pausar intercambio de energía':'Reproducir intercambio de energía');$('phase-play').textContent=phasePlaying?'Ⅱ':'▶';$('phase-play').setAttribute('aria-label',phasePlaying?'Pausar fluctuaciones':'Reproducir fluctuaciones');}
 $('play').addEventListener('click',()=>{if(progress>=1)progress=0;playing=!playing;updatePlay();drawStart();});
 $('restart').addEventListener('click',()=>{progress=0;playing=true;updatePlay();drawStart();});
+$('power-restart').addEventListener('click',()=>{progress=0;playing=true;updatePlay();drawStart();});
 $('energy-play').addEventListener('click',()=>{energyPlaying=!energyPlaying;updatePlay();});
 $('phase-play').addEventListener('click',()=>{phasePlaying=!phasePlaying;updatePlay();});
 $('equilibrium').addEventListener('click',()=>{state.probe=d.Aeq;syncControls();drawEnergy();});

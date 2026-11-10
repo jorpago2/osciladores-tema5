@@ -41,6 +41,16 @@ export function derived({ fMHz, Q, gain, vsat }) {
   };
 }
 
+/** RF powers averaged over a cycle, with amplitude specified as peak volts. */
+export function powerBalance(amplitude, params) {
+  nonnegative(amplitude, 'amplitude');
+  const d = derived(params), u = (amplitude / params.vsat) ** 2;
+  const loss = d.Gp * amplitude ** 2 / 2;
+  const ratio = params.gain / (1 + u);
+  return { loss, input: ratio * loss, ratio,
+    net: loss * (params.gain - 1 - u) / (1 + u) };
+}
+
 // Exact implicit integral of dx/ds = 2x(g - 1 - x)/(1 + x),
 // where x = (A/vsat)^2 and s = t/tau. Log-domain bisection keeps A >= 0
 // and avoids time-step instability during rapid growth or long ring-downs.

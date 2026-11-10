@@ -10,7 +10,8 @@
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./rf.css?v=20261110-corners1">
   <link rel="stylesheet" href="./corners.css?v=20261110-corners1">
-  <script type="module" src="./app.mjs?v=20261110-corners1"></script>
+  <link rel="stylesheet" href="./power.css?v=20261110-power1">
+  <script type="module" src="./app.mjs?v=20261110-power1"></script>
 </head>
 <body>
   <a class="skip" href="#lab">Saltar al laboratorio</a>
@@ -51,10 +52,17 @@
                   <path d="M540 72v16c-24 0-24 14 0 14c-24 0-24 14 0 14c-24 0-24 14 0 14c-24 0-24 14 0 14v29" class="wire"/><text x="555" y="121" class="svg-label">L</text>
                   <path d="M684 72v44m-19 0h38m-38 13h38m-19 0v44" class="wire"/><text x="713" y="127" class="svg-label">C</text>
                   <circle cx="302" cy="72" r="4" fill="#6853cf"/><path d="M302 72V44" class="wire"/><text x="302" y="32" text-anchor="middle" class="svg-label purple">v(t)</text>
-                  <circle id="energy-dot" cx="275" cy="72" r="5" fill="#6853cf"/>
                 </svg>
               </div>
               <p class="caption">El bloque activo toma energía de la alimentación y la entrega al resonador. Por eso, visto desde el LC, presenta una resistencia negativa.</p>
+              <div class="power-budget">
+                <div class="power-budget-head"><div><p class="eyebrow">BALANCE DURANTE EL ARRANQUE</p><h3>Compara el aporte con las pérdidas</h3></div><button class="text-button" id="power-restart">Reiniciar →</button></div>
+                <div class="power-row"><div><span>Amplificador → resonador</span><strong id="power-input-value"></strong></div><div class="power-track" aria-hidden="true"><div id="power-input-bar"></div></div></div>
+                <div class="power-row power-loss"><div><span>Resonador → pérdidas</span><strong id="power-loss-value"></strong></div><div class="power-track" aria-hidden="true"><div id="power-loss-bar"></div></div></div>
+                <div class="power-scale"><span>0</span><span id="power-scale-max"></span></div>
+                <div class="power-net"><strong id="power-direction"></strong><span id="power-net-value"></span></div>
+                <p class="caption">Las barras muestran potencias RF medias durante un ciclo, con una escala común que se ajusta al instante. Si el aporte supera las pérdidas, aumenta la energía almacenada y crece la amplitud. El consumo en continua del amplificador queda fuera de este balance.</p>
+              </div>
               <button class="outline-button rf-open-button" data-open-circuit>Ver el circuito con MOSFET a GHz →</button>
             </article>
             <article class="card scope-card">

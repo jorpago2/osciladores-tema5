@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { derived, envelopeAt, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs';
+import { derived, powerBalance, envelopeAt, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs';
 
 const base = { fMHz: 10, Q: 60, gain: 1.6, vsat: 1, noiseFloor: -150, flickerHz: 1000 };
 const close = (actual, expected, relative = 1e-8) => assert.ok(
@@ -134,4 +134,23 @@ test('invalid physical domains are rejected', () => {
   assert.throws(() => phaseNoiseDb(0, base), RangeError);
   assert.throws(() => integratedJitter(base, 100, 10), RangeError);
   assert.throws(() => phaseTrace({ count: 1 }), RangeError);
+});
+
+
+test('RF power balance matches the energy derivative of the envelope', () => {
+  for (const gain of [.6, 1, 1.8]) {
+    const params={...base,gain},d=derived(params),t=3*d.tau,h=1e-4*d.tau;
+    const amp=envelopeAt(t,params,.1);
+    const eBefore=d.C*envelopeAt(t-h,params,.1)**2/2;
+    const eAfter=d.C*envelopeAt(t+h,params,.1)**2/2;
+    close(powerBalance(amp,params).net,(eAfter-eBefore)/(2*h),1e-6);
+  }
+});
+
+test('power bars preserve the zero seed, passive loss and threshold decay', () => {
+  assert.equal(powerBalance(0,base).input,0);
+  assert.equal(powerBalance(0,base).loss,0);
+  assert.equal(powerBalance(.1,{...base,gain:0}).input,0);
+  assert.ok(powerBalance(.01,{...base,gain:1}).net<0);
+  assert.ok(Math.abs(powerBalance(derived(base).Aeq,base).net)<1e-15);
 });
