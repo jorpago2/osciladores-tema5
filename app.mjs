@@ -1,11 +1,12 @@
-import { initRF } from './rf.mjs?v=20261110-rf1';
+import { initCorners } from './corners.mjs?v=20261110-corners1';
+import { initRF } from './rf.mjs?v=20261110-corners1';
 import { derived, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs?v=20261110-rf1';
 
 const $ = id => document.getElementById(id);
 const colors = { purple: '#6853cf', orange: '#c57b43', ink: '#514b60', muted: '#9a92a6', grid: '#eeeaf3', gray: '#bfbac9', green: '#3c8071' };
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const state = { fMHz: 2400, Q: 10, gain: 1.33, vsat: 1, power: 0, nf: 6, flicker: 3, offset: 4, probe: 0.4, exaggeration: 0.45, tab: 'start', mod: 'pm', rfV: 30, rfGm: 4, rfQ: 10, rfC: 1, rfTail: 2, rfStep: 0 };
-const limits = { rfV:[-50,50], rfGm:[0.5,8], rfQ:[5,20], rfC:[0.5,2], rfTail:[1,4], rfStep:[0,5], fMHz:[500,6000], Q:[5,100], gain:[0,3], power:[-10,20], nf:[0,20], flicker:[0,5], offset:[2,9], probe:[0,2], exaggeration:[0,1] };
+const state = { fMHz: 2400, Q: 10, gain: 1.33, vsat: 1, power: 0, nf: 6, flicker: 3, offset: 4, probe: 0.4, exaggeration: 0.45, tab: 'start', mod: 'pm', rfV: 30, rfGm: 4, rfQ: 10, rfC: 1, rfTail: 2, rfStep: 0, cornerMode: 0, cornerL: 1, cornerF: 1, cornerProbe: -2.5 };
+const limits = { cornerMode:[0,3], cornerL:[0,1], cornerF:[0,1], cornerProbe:[-12,6], rfV:[-50,50], rfGm:[0.5,8], rfQ:[5,20], rfC:[0.5,2], rfTail:[1,4], rfStep:[0,5], fMHz:[500,6000], Q:[5,100], gain:[0,3], power:[-10,20], nf:[0,20], flicker:[0,5], offset:[2,9], probe:[0,2], exaggeration:[0,1] };
 let playing = !reducedMotion, energyPlaying = !reducedMotion, phasePlaying = !reducedMotion, progress = reducedMotion ? 1 : 0, elapsed = 0, lastFrame = 0, lastPaint = 0;
 let curve = [], d, duration, cycles, savedCurve = null, toastTimer;
 const trace = phaseTrace({ rmsRad: 1, count: 1200, seed: 5 });
@@ -27,6 +28,7 @@ function restoreHash() {
 }
 restoreHash();
 const rf = initRF(state);
+const corners = initCorners(state);
 
 function sizeCanvas(id) {
   const canvas = $(id), width = canvas.clientWidth, height = Number(canvas.getAttribute('height'));
@@ -97,24 +99,25 @@ function syncControls() {
   $('resistance').textContent=d.Rp>=1000?`${format(d.Rp/1000)} kΩ`:`${format(d.Rp,0)} Ω`;
   $('aeq').textContent=`${format(d.Aeq,3)} V de pico`;
   $('start-status').classList.toggle('off',state.gain<=1);
-  $('start-status').innerHTML=state.gain>1?`<strong>Hay margen para arrancar</strong>El aporte inicial supera las pérdidas un ${format((state.gain-1)*100,0)} %. La amplitud tiende a ${format(d.Aeq)} V.`:state.gain===1?'<strong>En el umbral</strong>La compensación iguala las pérdidas solo para señal muy pequeña. Una amplitud finita decae lentamente.':'<strong>La oscilación se apaga</strong>La energía aportada no compensa las pérdidas. La perturbación inicial se amortigua.';
+  $('start-status').innerHTML=state.gain>1?`<strong>Hay margen para arrancar</strong>En pequeña señal, el aporte supera las pérdidas un ${format((state.gain-1)*100,0)} %. Al crecer, la amplitud se aproxima a ${format(d.Aeq)} V de pico.`:state.gain===1?'<strong>En el umbral</strong>La compensación iguala las pérdidas en el límite de pequeña señal. Para una amplitud finita, la saturación reduce el aporte y la señal decae lentamente.':'<strong>La oscilación se apaga</strong>El aporte de energía es menor que las pérdidas, por lo que la perturbación inicial se amortigua.';
   document.querySelectorAll('[data-preset]').forEach(b=>b.classList.toggle('selected',b.dataset.preset===(state.gain===1?'threshold':state.gain>1?'on':'off')));
   const effective=state.gain/(1+state.probe**2), diff=effective-1;
   $('balance-status').classList.toggle('off',diff<-.005);
-  const direction=state.probe===0?'Sin semilla no arranca':Math.abs(diff)<.005?'Aporte y pérdidas se equilibran':diff>0?'La amplitud tiende a crecer':'La amplitud tiende a disminuir';
-  $('balance-status').innerHTML=`<strong>${direction}</strong>En esta amplitud, |G<sub>d</sub>| / G<sub>r</sub> = ${format(effective,3)}. ${state.probe===0?'El modelo determinista permanece en cero.':Math.abs(diff)<.005?'El balance de energía es aproximadamente nulo.':diff>0?'El balance de energía es positivo.':'Las pérdidas superan el aporte.'}`;
-  $('balance-caption').textContent=state.gain>1?'A la izquierda del cruce, la amplitud crece. A la derecha, decrece. Así se recupera el equilibrio después de una perturbación.':'Con g ≤ 1, no existe un equilibrio de amplitud positiva. Para cualquier amplitud finita, el aporte es menor que las pérdidas.';
+  const direction=state.probe===0?'La amplitud nula permanece en cero':Math.abs(diff)<.005?'Aporte y pérdidas se equilibran':diff>0?'La amplitud tiende a crecer':'La amplitud tiende a disminuir';
+  $('balance-status').innerHTML=`<strong>${direction}</strong>Para esta amplitud, |G<sub>d</sub>| / G<sub>r</sub> = ${format(effective,3)}. ${state.probe===0?'El modelo necesita una perturbación inicial para que pueda crecer la señal.':Math.abs(diff)<.005?'El balance de energía es aproximadamente nulo.':diff>0?'El resonador recibe más energía de la que pierde.':'Las pérdidas superan el aporte.'}`;
+  $('balance-caption').textContent=state.gain>1?'Por debajo de la amplitud de equilibrio, el aporte supera las pérdidas y la señal crece. Por encima, las pérdidas predominan y la amplitud disminuye. Ambas tendencias estabilizan la oscilación.':'Con g ≤ 1, el aporte es menor que las pérdidas para cualquier amplitud positiva. Por tanto, la oscilación se amortigua.';
   const np=noiseParams(), jitter=integratedJitter(np,1e3,jitterHigh());
   $('jitter-band').textContent=`Jitter RMS · 1 kHz–${freqText(jitterHigh())}`;
-  $('noise-assumptions').textContent=`Esta vista supone una portadora estable. Su potencia se fija de forma independiente y g no interviene. T = 290 K. El jitter integra de 1 kHz a ${freqText(jitterHigh())}. Limitamos Δf a 0,1 f₀ para explorar ruido cercano a la portadora.`;
+  $('noise-assumptions').textContent=`Esta vista supone una portadora estable a T = 290 K. Su potencia se ajusta de forma independiente del arranque y del parámetro g. El jitter se calcula entre 1 kHz y ${freqText(jitterHigh())}. La gráfica muestra separaciones Δf de hasta 0,1 f₀.`;
   $('offset-label').textContent=`ℒ a ${freqText(10**state.offset)}`;
   $('noise-readout').textContent=`${format(phaseNoiseDb(10**state.offset,np),1)} dBc/Hz`;
   $('leeson-readout').textContent=freqText(d.f0/(2*state.Q));
-  $('leeson-example').textContent=`Con f₀ = ${freqText(d.f0)} y Q = ${format(state.Q,0)}, fL = ${freqText(d.f0/(2*state.Q))}. La línea vertical de la gráfica marca esa distancia a la portadora. Al duplicar Q, esta esquina se desplaza a la mitad y el ruido próximo mejora aproximadamente 6 dB, manteniendo el resto de parámetros.`;
+  $('leeson-example').textContent=`fL = f₀/(2Q) = ${freqText(d.f0/(2*state.Q))}. ${np.flickerHz>0?`La esquina de flicker es fc = ${freqText(np.flickerHz)}.`:'El término de flicker está desactivado.'} Ambas se miden como separación respecto a la portadora.`;
+  corners.render();
   $('jitter-readout').textContent=jitter.sigmaT>=1e-9?`${format(jitter.sigmaT*1e9)} ns`:`${format(jitter.sigmaT*1e12)} ps`;
   document.querySelectorAll('[data-mod]').forEach(b=>b.classList.toggle('selected',b.dataset.mod===state.mod));
-  $('phase-heading').textContent=state.mod==='pm'?'Los cruces por cero ya no llegan a tiempo':'La altura cambia, los cruces se mantienen';
-  $('phase-caption').textContent=(state.mod==='pm'?'En fase cambia el ángulo del fasor, mientras su longitud permanece constante.':'En amplitud cambia la longitud del fasor, mientras su ángulo sigue la referencia ideal.')+' Esta animación conceptual exagera las fluctuaciones y no sintetiza el espectro de Leeson de arriba.';
+  $('phase-heading').textContent=state.mod==='pm'?'El ruido de fase desplaza los cruces por cero':'La amplitud varía y los cruces por cero se mantienen';
+  $('phase-caption').textContent=(state.mod==='pm'?'Con ruido de fase varía el ángulo del fasor, mientras su longitud permanece constante.':'Con ruido de amplitud varía la longitud del fasor, mientras su ángulo sigue la referencia ideal.')+' Las fluctuaciones se amplían para hacerlas visibles. Esta animación ilustra su efecto temporal y se genera de forma independiente del espectro de Leeson.';
 }
 function drawStart() {
   const ymax=Math.max(.013,d.Aeq*1.22), scale=state.gain<=1?1000:1;
@@ -149,7 +152,7 @@ function drawEnergy() {
 function drawEnergyTanks(){
   const angle=elapsed*.00065,electric=Math.cos(angle)**2,magnetic=1-electric;
   $('electric-fill').style.height=`${electric*100}%`; $('magnetic-fill').style.height=`${magnetic*100}%`;
-  $('electric-value').textContent=`${format(electric*100,0)} % de E total`; $('magnetic-value').textContent=`${format(magnetic*100,0)} % de E total`;
+  $('electric-value').textContent=`${format(electric*100,0)} % de la energía`; $('magnetic-value').textContent=`${format(magnetic*100,0)} % de la energía`;
 }
 function drawSpectrum() {
   const params=noiseParams(), maxLog=Math.log10(maxOffset()), values=Array.from({length:500},(_,i)=>{const x=2+(maxLog-2)*i/499;return[x,phaseNoiseDb(10**x,params)]});
@@ -163,7 +166,9 @@ function drawSpectrum() {
   if(saved)line(p,saved,colors.orange,1.7,true);
   line(p,values,'#6853cf08',1,false,true);line(p,values,colors.purple,2.4);
   const fL=Math.log10(d.f0/(2*state.Q));
-  if(fL>=2&&fL<=maxLog){line(p,[[fL,ymin],[fL,ymax]],'#d4cdeb',1,true);p.ctx.fillStyle=colors.muted;p.ctx.font='9px "Segoe UI"';p.ctx.textAlign='left';p.ctx.fillText('fL',p.x(fL)+4,p.top+13);}
+  if(fL>=2&&fL<=maxLog){line(p,[[fL,ymin],[fL,ymax]],'#318194',1,true);p.ctx.fillStyle='#318194';p.ctx.font='9px "Segoe UI"';p.ctx.textAlign='left';p.ctx.fillText('fL',p.x(fL)+4,p.top+13);}
+  const fc=params.flickerHz>0?Math.log10(params.flickerHz):-Infinity;
+  if(fc>=2&&fc<=maxLog){line(p,[[fc,ymin],[fc,ymax]],colors.orange,1,true);p.ctx.fillStyle=colors.orange;p.ctx.font='9px Segoe UI';p.ctx.textAlign='left';p.ctx.fillText('fc',p.x(fc)+4,p.top+26);}
   const marker=phaseNoiseDb(10**state.offset,params);line(p,[[state.offset,ymin],[state.offset,marker]],'#b5a5e8',1,true);dot(p,state.offset,marker,colors.purple,4.5);
 }
 function noiseAt(index){const base=((index%trace.length)+trace.length)%trace.length;return trace[Math.floor(base)];}
@@ -184,13 +189,13 @@ function drawPhase() {
   if(state.mod==='pm'){ctx.beginPath();ctx.arc(cx,cy,radius*.45,Math.min(-theta,-theta-err),Math.max(-theta,-theta-err));ctx.strokeStyle=colors.orange;ctx.lineWidth=2;ctx.stroke();}
   ctx.font='9px "Segoe UI"';ctx.textAlign='center';ctx.fillStyle=colors.muted;ctx.fillText(state.mod==='pm'?'Varía el ángulo φ':'Varía el módulo A',cx,height-9);
 }
-function draw(){if(state.tab==='circuit')rf.render();if(state.tab==='start')drawStart();if(state.tab==='energy')drawEnergy();if(state.tab==='noise'){drawSpectrum();drawPhase();}}
+function draw(){if(state.tab==='circuit')rf.render();if(state.tab==='start')drawStart();if(state.tab==='energy')drawEnergy();if(state.tab==='noise'){drawSpectrum();drawPhase();corners.render();}}
 
 const quizzes={
   circuit:{question:'Si v₁ sube y v₂ baja, ¿qué hace el par NMOS cruzado?',answers:['M1 conduce menos y M2 más','Ambos conducen más','M1 conduce más y M2 menos'],correct:0,feedback:'La puerta de M1 recibe v₂ y la de M2 recibe v₁. El cambio de corrientes refuerza el desequilibrio y origina la conductancia diferencial −gm/2.'},
-  start:{question:'Si la compensación baja por debajo de las pérdidas, ¿qué ocurre?',answers:['La amplitud decrece','La frecuencia se duplica','La amplitud crece'],correct:0,feedback:'La amplitud decrece porque el balance de energía es negativo. El resonador pierde más energía de la que recibe.'},
-  energy:{question:'Justo por encima de la amplitud estable, ¿qué hace el circuito?',answers:['Sigue creciendo','Recupera el equilibrio','Se vuelve ideal'],correct:1,feedback:'La saturación reduce el aporte por debajo de las pérdidas. Por eso la amplitud disminuye y vuelve al punto de equilibrio.'},
-  noise:{question:'Si duplicas la potencia de señal y mantienes lo demás, ¿cómo cambia ℒ?',answers:['Baja unos 3 dB','Baja unos 6 dB','No cambia'],correct:0,feedback:'La densidad relativa de ruido es inversamente proporcional a la potencia de señal. Duplicarla reduce ℒ en 10 log₁₀(2) ≈ 3,01 dB en este modelo.'}
+  start:{question:'Si el aporte del bloque activo cae por debajo de las pérdidas, ¿qué ocurre?',answers:['La amplitud decrece','La frecuencia se duplica','La amplitud crece'],correct:0,feedback:'El resonador pierde más energía de la que recibe, por lo que la amplitud disminuye.'},
+  energy:{question:'Si la amplitud supera ligeramente su valor estable, ¿cómo evoluciona?',answers:['Sigue creciendo','Vuelve al valor estable','Permanece en el nuevo valor'],correct:1,feedback:'La saturación reduce el aporte hasta situarlo por debajo de las pérdidas. Como resultado, la amplitud disminuye hacia el valor estable.'},
+  noise:{question:'Si duplicas la potencia de señal y mantienes los demás parámetros, ¿cómo cambia ℒ?',answers:['Baja unos 3 dB','Baja unos 6 dB','No cambia'],correct:0,feedback:'En este modelo, la densidad de ruido relativa a la portadora es inversamente proporcional a la potencia de señal. Por ello, duplicar esa potencia reduce ℒ en 10 log₁₀(2) ≈ 3,01 dB.'}
 };
 function setTab(tab,focus=false){
   state.tab=tab;
@@ -198,7 +203,7 @@ function setTab(tab,focus=false){
   for(const key of Object.keys(quizzes))$(`panel-${key}`).hidden=key!==tab;
   $('theory-details').hidden=tab==='circuit';
   const quiz=quizzes[tab];$('challenge-question').textContent=quiz.question;$('challenge-feedback').textContent='';$('challenge-options').replaceChildren();
-  quiz.answers.forEach((answer,index)=>{const button=document.createElement('button');button.textContent=answer;button.addEventListener('click',()=>{button.classList.add(index===quiz.correct?'correct':'incorrect');$('challenge-feedback').textContent=(index===quiz.correct?'Exacto. ':'Piénsalo en términos del modelo. ')+quiz.feedback;});$('challenge-options').append(button);});
+  quiz.answers.forEach((answer,index)=>{const button=document.createElement('button');button.textContent=answer;button.addEventListener('click',()=>{button.classList.add(index===quiz.correct?'correct':'incorrect');$('challenge-feedback').textContent=(index===quiz.correct?'Exacto. ':'Revisa el efecto de este cambio. ')+quiz.feedback;});$('challenge-options').append(button);});
   draw();
 }
 document.querySelectorAll('[data-tab]').forEach(button=>{button.addEventListener('click',()=>setTab(button.dataset.tab));button.addEventListener('keydown',event=>{const tabs=['start','energy','noise','circuit'],index=tabs.indexOf(state.tab);let next;if(event.key==='ArrowRight')next=tabs[(index+1)%tabs.length];if(event.key==='ArrowLeft')next=tabs[(index+tabs.length-1)%tabs.length];if(event.key==='Home')next=tabs[0];if(event.key==='End')next=tabs.at(-1);if(next){event.preventDefault();setTab(next,true);}});});
@@ -213,13 +218,13 @@ $('energy-play').addEventListener('click',()=>{energyPlaying=!energyPlaying;upda
 $('phase-play').addEventListener('click',()=>{phasePlaying=!phasePlaying;updatePlay();});
 $('equilibrium').addEventListener('click',()=>{state.probe=d.Aeq;syncControls();drawEnergy();});
 document.querySelectorAll('[data-mod]').forEach(button=>button.addEventListener('click',()=>{state.mod=button.dataset.mod;syncControls();drawPhase();}));
-$('save-curve').addEventListener('click',()=>{savedCurve={...noiseParams()};$('saved-legend').hidden=false;$('clear-curve').hidden=false;$('save-curve').textContent='↻ Actualizar curva guardada';drawSpectrum();toast('Curva guardada. Cambia Q o la potencia para comparar.');});
+$('save-curve').addEventListener('click',()=>{savedCurve={...noiseParams()};$('saved-legend').hidden=false;$('clear-curve').hidden=false;$('save-curve').textContent='↻ Actualizar curva guardada';drawSpectrum();toast('Curva guardada como referencia. Ajusta Q, la potencia o el flicker para comparar.');});
 $('clear-curve').addEventListener('click',()=>{savedCurve=null;$('saved-legend').hidden=true;$('clear-curve').hidden=true;$('save-curve').textContent='＋ Guardar curva para comparar';drawSpectrum();});
 function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3500);}
 function download(name,content){const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('export-envelope').addEventListener('click',()=>download('oscila-arranque.csv',`# f0_Hz=${d.f0},Q=${state.Q},g=${state.gain},As_V=${state.vsat},semilla_V=0.01\ntiempo_s,amplitud_pico_V\n`+curve.map(p=>`${p.t},${p.a}`).join('\n')));
 $('export-noise').addEventListener('click',()=>{const np=noiseParams();download('oscila-ruido-fase.csv',`# f0_Hz=${d.f0},Q=${state.Q},Ps_dBm=${state.power},NF_dB=${state.nf},fc_Hz=${np.flickerHz},T_K=290\noffset_Hz,L_dBc_por_Hz\n`+Array.from({length:501},(_,i)=>{const f=10**(2+(Math.log10(maxOffset())-2)*i/500);return`${f},${phaseNoiseDb(f,np)}`}).join('\n'));});
-$('share').addEventListener('click',async()=>{const p=new URLSearchParams();for(const key of [...Object.keys(limits),'tab','mod'])p.set(key,String(state[key]));const url=new URL(location.href);url.hash=p.toString();history.replaceState(null,'',url);try{await navigator.clipboard.writeText(url.href);toast('Enlace copiado con los ajustes actuales.');}catch{toast('Los ajustes están en la dirección. Copia el enlace del navegador.');}});
+$('share').addEventListener('click',async()=>{const p=new URLSearchParams();for(const key of [...Object.keys(limits),'tab','mod'])p.set(key,String(state[key]));const url=new URL(location.href);url.hash=p.toString();history.replaceState(null,'',url);try{await navigator.clipboard.writeText(url.href);toast('Enlace copiado con los ajustes actuales.');}catch{toast('Los ajustes se han añadido a la dirección. Copia el enlace del navegador.');}});
 window.addEventListener('hashchange',()=>{restoreHash();recalculate();setTab(state.tab);});
 let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(draw,80);});
 document.addEventListener('visibilitychange',()=>{lastFrame=0;});
