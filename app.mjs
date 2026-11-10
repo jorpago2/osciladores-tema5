@@ -1,16 +1,16 @@
-import { initNic } from './nic.mjs?v=20261110-nic1';
-import { derived, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs';
+import { initRF } from './rf.mjs?v=20261110-rf1';
+import { derived, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs?v=20261110-rf1';
 
 const $ = id => document.getElementById(id);
 const colors = { purple: '#6853cf', orange: '#c57b43', ink: '#514b60', muted: '#9a92a6', grid: '#eeeaf3', gray: '#bfbac9', green: '#3c8071' };
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const state = { fMHz: 10, Q: 60, gain: 1.65, vsat: 1, power: 0, nf: 6, flicker: 3, offset: 4, probe: 0.4, exaggeration: 0.45, tab: 'start', mod: 'pm', nicV: 0.2, nicRn: 6800, nicCoil: 20, nicStep: 0 };
-const limits = { nicV:[-0.5,0.5], nicRn:[6800,15000], nicCoil:[0,80], nicStep:[0,5], fMHz:[1,100], Q:[20,200], gain:[0,3], power:[-10,20], nf:[0,20], flicker:[0,5], offset:[2,7], probe:[0,2], exaggeration:[0,1] };
+const state = { fMHz: 2400, Q: 10, gain: 1.33, vsat: 1, power: 0, nf: 6, flicker: 3, offset: 4, probe: 0.4, exaggeration: 0.45, tab: 'start', mod: 'pm', rfV: 30, rfGm: 4, rfQ: 10, rfC: 1, rfTail: 2, rfStep: 0 };
+const limits = { rfV:[-50,50], rfGm:[0.5,8], rfQ:[5,20], rfC:[0.5,2], rfTail:[1,4], rfStep:[0,5], fMHz:[500,6000], Q:[5,100], gain:[0,3], power:[-10,20], nf:[0,20], flicker:[0,5], offset:[2,9], probe:[0,2], exaggeration:[0,1] };
 let playing = !reducedMotion, energyPlaying = !reducedMotion, phasePlaying = !reducedMotion, progress = reducedMotion ? 1 : 0, elapsed = 0, lastFrame = 0, lastPaint = 0;
 let curve = [], d, duration, cycles, savedCurve = null, toastTimer;
 const trace = phaseTrace({ rmsRad: 1, count: 1200, seed: 5 });
 const format = (n, digits = 2) => n.toLocaleString('es-ES', { maximumFractionDigits: digits, minimumFractionDigits: digits });
-const freqText = f => f >= 1e6 ? `${format(f / 1e6, f % 1e6 === 0 ? 0 : 1)} MHz` : f >= 1e3 ? `${format(f / 1e3, f % 1e3 === 0 ? 0 : 1)} kHz` : `${format(f, 0)} Hz`;
+const freqText = f => f >= 1e9 ? `${format(f / 1e9, 3)} GHz` : f >= 1e6 ? `${format(f / 1e6, f % 1e6 === 0 ? 0 : 1)} MHz` : f >= 1e3 ? `${format(f / 1e3, f % 1e3 === 0 ? 0 : 1)} kHz` : `${format(f, 0)} Hz`;
 const noiseParams = () => ({ fMHz:state.fMHz, Q:state.Q, noiseFloor:10 * Math.log10(10 ** (state.nf/10) * 1.380649e-23 * 290 / (2 * 1e-3 * 10 ** (state.power/10))), flickerHz:state.flicker === 0 ? 0 : 10 ** state.flicker });
 const maxOffset = () => state.fMHz * 1e5;
 const jitterHigh = () => Math.min(1e6, maxOffset());
@@ -26,7 +26,7 @@ function restoreHash() {
   if (['pm','am'].includes(p.get('mod'))) state.mod = p.get('mod');
 }
 restoreHash();
-const nic = initNic(state);
+const rf = initRF(state);
 
 function sizeCanvas(id) {
   const canvas = $(id), width = canvas.clientWidth, height = Number(canvas.getAttribute('height'));
@@ -75,7 +75,7 @@ function currentAmplitude(){const index=Math.min(curve.length-1,Math.round(progr
 function recalculate(reset = false) {
   d = derived(state);
   // A fixed physical window in cycles makes changes in Q directly comparable.
-  cycles = 900; duration = cycles / d.f0;
+  cycles = 200; duration = cycles / d.f0;
   curve = simulateEnvelope(state, duration, 700);
   if(reset) progress=0;
   syncControls(); draw();
@@ -89,7 +89,7 @@ function syncControls() {
   state.offset=Math.min(state.offset,Number($('offset').max));
   updateSlider('gain',state.gain,`${format(state.gain)} ×`); updateSlider('energy-gain',state.gain,`${format(state.gain)} ×`);
   updateSlider('q',state.Q,`Q = ${format(state.Q,0)}`); updateSlider('noise-q',state.Q,format(state.Q,0));
-  updateSlider('freq',state.fMHz,`${format(state.fMHz,0)} MHz`); updateSlider('noise-freq',state.fMHz,`${format(state.fMHz,0)} MHz`);
+  updateSlider('freq',state.fMHz,freqText(state.fMHz*1e6)); updateSlider('noise-freq',state.fMHz,freqText(state.fMHz*1e6));
   updateSlider('probe',state.probe,`${format(state.probe)} V`); updateSlider('power',state.power,`${format(state.power,0)} dBm`);
   updateSlider('nf',state.nf,`${format(state.nf,0)} dB`); updateSlider('flicker',state.flicker,state.flicker===0?'Sin flicker':freqText(10**state.flicker));
   updateSlider('offset',state.offset,freqText(10**state.offset)); updateSlider('exaggeration',state.exaggeration,`${format(state.exaggeration*100,0)} %`);
@@ -110,6 +110,7 @@ function syncControls() {
   $('offset-label').textContent=`ℒ a ${freqText(10**state.offset)}`;
   $('noise-readout').textContent=`${format(phaseNoiseDb(10**state.offset,np),1)} dBc/Hz`;
   $('leeson-readout').textContent=freqText(d.f0/(2*state.Q));
+  $('leeson-example').textContent=`Con f₀ = ${freqText(d.f0)} y Q = ${format(state.Q,0)}, fL = ${freqText(d.f0/(2*state.Q))}. La línea vertical de la gráfica marca esa distancia a la portadora. Al duplicar Q, esta esquina se desplaza a la mitad y el ruido próximo mejora aproximadamente 6 dB, manteniendo el resto de parámetros.`;
   $('jitter-readout').textContent=jitter.sigmaT>=1e-9?`${format(jitter.sigmaT*1e9)} ns`:`${format(jitter.sigmaT*1e12)} ps`;
   document.querySelectorAll('[data-mod]').forEach(b=>b.classList.toggle('selected',b.dataset.mod===state.mod));
   $('phase-heading').textContent=state.mod==='pm'?'Los cruces por cero ya no llegan a tiempo':'La altura cambia, los cruces se mantienen';
@@ -117,7 +118,7 @@ function syncControls() {
 }
 function drawStart() {
   const ymax=Math.max(.013,d.Aeq*1.22), scale=state.gain<=1?1000:1;
-  const p=plot('envelope',{xmax:cycles,ymax,xticks:[0,150,300,450,600,750,900],yticks:[0,ymax/3,2*ymax/3,ymax],yformat:v=>format(v*scale,scale===1000?0:2),xlabel:'Tiempo en ciclos de f₀',ylabel:scale===1000?'Amplitud · mV':'Amplitud · V'});
+  const p=plot('envelope',{xmax:cycles,ymax,xticks:[0,40,80,120,160,200],yticks:[0,ymax/3,2*ymax/3,ymax],yformat:v=>format(v*scale,scale===1000?0:2),xlabel:'Tiempo en ciclos de f₀',ylabel:scale===1000?'Amplitud · mV':'Amplitud · V'});
   if(p){
     line(p,[[0,d.Aeq],[cycles,d.Aeq]],colors.gray,1,true);
     const points=curve.slice(0,Math.round(progress*(curve.length-1))+1).map(v=>[v.t*d.f0,v.a]);
@@ -128,7 +129,7 @@ function drawStart() {
   const amplitude=currentAmplitude(), waveMax=Math.max(.013,d.Aeq*1.2), waveScale=state.gain<=1?1000:1;
   const wave=plot('wave',{xmax:5,ymin:-waveMax,ymax:waveMax,yticks:[-waveMax,0,waveMax],yformat:v=>format(v*waveScale,waveScale===1000?0:1),xticks:[0,1,2,3,4,5],xlabel:'Detalle · ciclos',ylabel:waveScale===1000?'mV':'V',bottom:27});
   if(wave)line(wave,Array.from({length:500},(_,i)=>[i/499*5,amplitude*Math.cos(2*Math.PI*(i/499*5-progress*cycles))]),colors.purple,1.8);
-  $('time-readout').textContent=`t = ${format(progress*duration*1e6,1)} µs`;
+  $('time-readout').textContent=`t = ${format(progress*duration*1e9,1)} ns`;
   $('wave-scale').textContent=`A = ${amplitude<.1?format(amplitude*1000,2)+' mV':format(amplitude,3)+' V'}`;
   $('energy-dot').setAttribute('cx',String(260+(elapsed*.0001%1)*85));
   $('energy-dot').setAttribute('opacity',state.gain===0?'0':'1');
@@ -156,7 +157,7 @@ function drawSpectrum() {
   const ymin=Math.floor(Math.min(params.noiseFloor,savedCurve?.noiseFloor??params.noiseFloor)/20)*20-5;
   const ymax=Math.ceil(Math.max(values[0][1],saved?.[0][1]??-999)/20)*20+5;
   const yticks=[];for(let v=Math.ceil(ymin/20)*20;v<=ymax;v+=20)yticks.push(v);
-  const p=plot('spectrum',{xmin:2,xmax:maxLog,ymin,ymax,xticks:[2,3,4,5,6,7].filter(v=>v<=maxLog),xformat:v=>['100','1k','10k','100k','1M','10M'][v-2],yticks,yformat:v=>String(v),xlabel:'Separación Δf · Hz (escala logarítmica)',ylabel:'ℒ(Δf) · dBc/Hz',left:44});
+  const p=plot('spectrum',{xmin:2,xmax:maxLog,ymin,ymax,xticks:[2,3,4,5,6,7,8,9].filter(v=>v<=maxLog),xformat:v=>['100','1k','10k','100k','1M','10M','100M','1G'][v-2],yticks,yformat:v=>String(v),xlabel:'Separación Δf · Hz (escala logarítmica)',ylabel:'ℒ(Δf) · dBc/Hz',left:44});
   if(!p)return;
   line(p,[[2,params.noiseFloor],[maxLog,params.noiseFloor]],colors.gray,1,true);
   if(saved)line(p,saved,colors.orange,1.7,true);
@@ -183,10 +184,10 @@ function drawPhase() {
   if(state.mod==='pm'){ctx.beginPath();ctx.arc(cx,cy,radius*.45,Math.min(-theta,-theta-err),Math.max(-theta,-theta-err));ctx.strokeStyle=colors.orange;ctx.lineWidth=2;ctx.stroke();}
   ctx.font='9px "Segoe UI"';ctx.textAlign='center';ctx.fillStyle=colors.muted;ctx.fillText(state.mod==='pm'?'Varía el ángulo φ':'Varía el módulo A',cx,height-9);
 }
-function draw(){if(state.tab==='circuit')nic.render();if(state.tab==='start')drawStart();if(state.tab==='energy')drawEnergy();if(state.tab==='noise'){drawSpectrum();drawPhase();}}
+function draw(){if(state.tab==='circuit')rf.render();if(state.tab==='start')drawStart();if(state.tab==='energy')drawEnergy();if(state.tab==='noise'){drawSpectrum();drawPhase();}}
 
 const quizzes={
-  circuit:{question:'Si v es positiva y vo es mayor, ¿por dónde circula la corriente en RN?',answers:['De la salida al LC','Del LC a la salida','No hay corriente'],correct:0,feedback:'La corriente va desde la tensión mayor, vo, hacia la menor, v. Como la referencia i entra al NIC, su valor es negativo.'},
+  circuit:{question:'Si v₁ sube y v₂ baja, ¿qué hace el par NMOS cruzado?',answers:['M1 conduce menos y M2 más','Ambos conducen más','M1 conduce más y M2 menos'],correct:0,feedback:'La puerta de M1 recibe v₂ y la de M2 recibe v₁. El cambio de corrientes refuerza el desequilibrio y origina la conductancia diferencial −gm/2.'},
   start:{question:'Si la compensación baja por debajo de las pérdidas, ¿qué ocurre?',answers:['La amplitud decrece','La frecuencia se duplica','La amplitud crece'],correct:0,feedback:'La amplitud decrece porque el balance de energía es negativo. El resonador pierde más energía de la que recibe.'},
   energy:{question:'Justo por encima de la amplitud estable, ¿qué hace el circuito?',answers:['Sigue creciendo','Recupera el equilibrio','Se vuelve ideal'],correct:1,feedback:'La saturación reduce el aporte por debajo de las pérdidas. Por eso la amplitud disminuye y vuelve al punto de equilibrio.'},
   noise:{question:'Si duplicas la potencia de señal y mantienes lo demás, ¿cómo cambia ℒ?',answers:['Baja unos 3 dB','Baja unos 6 dB','No cambia'],correct:0,feedback:'La densidad relativa de ruido es inversamente proporcional a la potencia de señal. Duplicarla reduce ℒ en 10 log₁₀(2) ≈ 3,01 dB en este modelo.'}
@@ -204,7 +205,7 @@ document.querySelectorAll('[data-tab]').forEach(button=>{button.addEventListener
 document.querySelectorAll('[data-open-circuit]').forEach(button=>button.addEventListener('click',()=>{setTab('circuit',true);$('lab').scrollIntoView({block:'start'});}));
 const bindings={gain:'gain','energy-gain':'gain',q:'Q','noise-q':'Q',freq:'fMHz','noise-freq':'fMHz',probe:'probe',power:'power',nf:'nf',flicker:'flicker',offset:'offset',exaggeration:'exaggeration'};
 for(const [id,key]of Object.entries(bindings))$(id).addEventListener('input',event=>{state[key]=Number(event.target.value);if(['gain','Q','fMHz'].includes(key))recalculate();else{syncControls();draw();}});
-document.querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{state.gain={off:.65,threshold:1,on:1.65}[button.dataset.preset];recalculate(true);playing=!reducedMotion;if(reducedMotion)progress=1;updatePlay();draw();}));
+document.querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{state.gain={off:.65,threshold:1,on:1.33}[button.dataset.preset];recalculate(true);playing=!reducedMotion;if(reducedMotion)progress=1;updatePlay();draw();}));
 function updatePlay(){$('play').textContent=playing?'Ⅱ':'▶';$('play').setAttribute('aria-label',playing?'Pausar animación':'Reproducir animación');$('energy-play').textContent=energyPlaying?'Ⅱ':'▶';$('energy-play').setAttribute('aria-label',energyPlaying?'Pausar intercambio de energía':'Reproducir intercambio de energía');$('phase-play').textContent=phasePlaying?'Ⅱ':'▶';$('phase-play').setAttribute('aria-label',phasePlaying?'Pausar fluctuaciones':'Reproducir fluctuaciones');}
 $('play').addEventListener('click',()=>{if(progress>=1)progress=0;playing=!playing;updatePlay();drawStart();});
 $('restart').addEventListener('click',()=>{progress=0;playing=true;updatePlay();drawStart();});

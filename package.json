@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Laboratorio interactivo de osciladores por resistencia negativa y ruido de fase",
   "scripts": {
-    "test": "node --test model.test.mjs nic-model.test.mjs",
+    "test": "node --test model.test.mjs rf-model.test.mjs",
     "start": "node serve.mjs"
   }
 }

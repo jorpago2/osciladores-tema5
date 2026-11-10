@@ -30,7 +30,7 @@ export function derived({ fMHz, Q, gain, vsat }) {
   nonnegative(gain, 'gain');
   positive(vsat, 'vsat');
   const w0 = TWO_PI * f0;
-  const C = 100e-12;
+  const C = 1e-12;
   const L = 1 / (w0 * w0 * C);
   const Gp = w0 * C / Q;
   return {

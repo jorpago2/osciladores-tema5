@@ -8,8 +8,8 @@
   <title>Oscila · Laboratorio de osciladores</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
-  <link rel="stylesheet" href="./nic.css?v=20261110-nic1">
-  <script type="module" src="./app.mjs?v=20261110-nic1"></script>
+  <link rel="stylesheet" href="./rf.css?v=20261110-rf1">
+  <script type="module" src="./app.mjs?v=20261110-rf1"></script>
 </head>
 <body>
   <a class="skip" href="#lab">Saltar al laboratorio</a>
@@ -28,7 +28,7 @@
       <button id="tab-start" role="tab" aria-selected="true" aria-controls="panel-start" data-tab="start"><span>01</span> El arranque</button>
       <button id="tab-energy" role="tab" aria-selected="false" aria-controls="panel-energy" data-tab="energy" tabindex="-1"><span>02</span> El equilibrio</button>
       <button id="tab-noise" role="tab" aria-selected="false" aria-controls="panel-noise" data-tab="noise" tabindex="-1"><span>03</span> El ruido de fase</button>
-      <button id="tab-circuit" role="tab" aria-selected="false" aria-controls="panel-circuit" data-tab="circuit" tabindex="-1"><span>04</span> Circuito real</button>
+      <button id="tab-circuit" role="tab" aria-selected="false" aria-controls="panel-circuit" data-tab="circuit" tabindex="-1"><span>04</span> MOSFET a GHz</button>
     </nav>
     <div id="lab">
       <section id="panel-start" role="tabpanel" aria-labelledby="tab-start" class="panel">
@@ -54,7 +54,7 @@
                 </svg>
               </div>
               <p class="caption">El bloque activo recibe energía de la alimentación. Visto desde el resonador, se comporta como una resistencia negativa.</p>
-              <button class="outline-button nic-open-button" data-open-circuit>Ver cómo se construye con un operacional →</button>
+              <button class="outline-button rf-open-button" data-open-circuit>Ver cómo se consigue con MOSFET a GHz →</button>
             </article>
             <article class="card scope-card">
               <div class="card-head"><div><p class="eyebrow">DEL RUIDO AL RÉGIMEN PERMANENTE</p><h2>La amplitud cuenta la historia</h2></div><div class="transport"><button id="play" class="icon-button" aria-label="Pausar animación">Ⅱ</button><button id="restart" class="icon-button" aria-label="Reiniciar arranque">↺</button></div></div>
@@ -67,11 +67,11 @@
           </div>
           <aside class="card controls"><div class="controls-title"><h2>Hazlo oscilar</h2><span class="knob-icon">⌘</span></div><p class="control-intro">La clave está en aportar más energía de la que se pierde.</p>
             <div class="preset-group" aria-label="Escenarios de arranque"><button data-preset="off">Se apaga</button><button data-preset="threshold">Umbral</button><button class="selected" data-preset="on">Oscila</button></div>
-            <label class="slider-label" for="gain">Compensación inicial <output id="gain-out"></output></label><input id="gain" type="range" min="0" max="3" step="0.01" value="1.65"><div class="range-labels"><span>Más pérdidas</span><span>Más aporte</span></div><p class="field-help">g = |G<sub>d</sub>(0)| / G<sub>r</sub>. El umbral es g = 1.</p>
-            <label class="slider-label" for="q">Calidad del resonador <output id="q-out"></output></label><input id="q" type="range" min="20" max="200" step="1" value="60"><p class="field-help">Un Q mayor conserva la energía durante más ciclos. Aquí g se mantiene constante.</p>
-            <label class="slider-label" for="freq">Frecuencia natural <output id="freq-out"></output></label><input id="freq" type="range" min="1" max="100" step="1" value="10">
+            <label class="slider-label" for="gain">Compensación inicial <output id="gain-out"></output></label><input id="gain" type="range" min="0" max="3" step="0.01" value="1.33"><div class="range-labels"><span>Más pérdidas</span><span>Más aporte</span></div><p class="field-help">g = |G<sub>d</sub>(0)| / G<sub>r</sub>. El umbral es g = 1.</p>
+            <label class="slider-label" for="q">Calidad del resonador <output id="q-out"></output></label><input id="q" type="range" min="5" max="100" step="1" value="10"><p class="field-help">Un Q mayor conserva la energía durante más ciclos. Aquí g se mantiene constante.</p>
+            <label class="slider-label" for="freq">Frecuencia natural <output id="freq-out"></output></label><input id="freq" type="range" min="500" max="6000" step="1" value="2400">
             <div class="status-box" id="start-status" aria-live="polite"></div>
-            <div class="mini-specs"><div><span>Condensador</span><strong>100 pF</strong></div><div><span>Inductancia</span><strong id="inductance"></strong></div><div><span>Pérdidas R<sub>p</sub></span><strong id="resistance"></strong></div></div>
+            <div class="mini-specs"><div><span>Condensador</span><strong>1 pF</strong></div><div><span>Inductancia</span><strong id="inductance"></strong></div><div><span>Pérdidas R<sub>p</sub></span><strong id="resistance"></strong></div></div>
             <button class="outline-button" id="export-envelope">↓ Descargar datos del arranque</button>
           </aside>
         </div>
@@ -82,7 +82,7 @@
           <article class="card"><div class="card-head"><div><p class="eyebrow">UN EQUILIBRIO QUE SE RECUPERA</p><h2>¿Por qué la amplitud deja de crecer?</h2></div><span class="pill">No linealidad</span></div><div class="plot-key"><span class="legend purple-key">|G<sub>d</sub>(A)| / G<sub>r</sub></span><span class="legend orange-key">Pérdidas normalizadas = 1</span></div><canvas id="balance" height="280" aria-label="Conductancia negativa frente a amplitud. El cruce con las pérdidas determina el equilibrio estable"></canvas><p class="caption" id="balance-caption">A la izquierda del cruce, la amplitud crece. A la derecha, decrece. Así se recupera el equilibrio después de una perturbación.</p></article>
           <article class="card energy-card"><div class="card-head"><div><p class="eyebrow">DENTRO DEL RESONADOR</p><h2>La energía va y viene</h2></div><button id="energy-play" class="icon-button" aria-label="Pausar intercambio de energía">Ⅱ</button></div><div class="energy-visual"><div class="energy-cell"><span class="energy-symbol">C</span><div class="energy-tank"><div id="electric-fill"></div></div><strong>Campo eléctrico</strong><span id="electric-value"></span></div><div class="energy-transfer"><span>⇄</span><p>El condensador y la bobina<br>se turnan al almacenarla</p></div><div class="energy-cell"><span class="energy-symbol">L</span><div class="energy-tank magnetic"><div id="magnetic-fill"></div></div><strong>Campo magnético</strong><span id="magnetic-value"></span></div></div><p class="caption">Intercambio normalizado de un LC ideal con amplitud fija no nula, independiente de la amplitud de prueba. En el oscilador real, el amplificador repone las pérdidas.</p></article>
         </div><aside class="card controls"><h2>Encuentra el punto estable</h2><p class="control-intro">Mueve la amplitud de prueba y compara el aporte con las pérdidas.</p>
-          <label class="slider-label" for="energy-gain">Compensación inicial <output id="energy-gain-out"></output></label><input id="energy-gain" type="range" min="0" max="3" step="0.01" value="1.65">
+          <label class="slider-label" for="energy-gain">Compensación inicial <output id="energy-gain-out"></output></label><input id="energy-gain" type="range" min="0" max="3" step="0.01" value="1.33">
           <label class="slider-label" for="probe">Amplitud de prueba <output id="probe-out"></output></label><input id="probe" type="range" min="0" max="2" step="0.01" value="0.4">
           <div class="status-box" id="balance-status" aria-live="polite"></div><button id="equilibrium" class="primary-button">Llevar al equilibrio</button>
           <div class="formula-card"><span>AMPLITUD FINAL</span><div>A<sub>∞</sub> = A<sub>s</sub> √(g − 1)</div><p>Para g &gt; 1. En este modelo A<sub>s</sub> = 1 V.</p><strong id="aeq"></strong></div>
@@ -91,98 +91,136 @@
       </section>
       <section id="panel-noise" role="tabpanel" aria-labelledby="tab-noise" class="panel" hidden>
         <div class="workspace"><div class="visual-column">
-          <article class="card"><div class="card-head"><div><p class="eyebrow">LA PUREZA DE LA OSCILACIÓN</p><h2>Una portadora nunca está completamente sola</h2></div><span class="pill">Modelo de Leeson</span></div><div class="plot-key"><span class="legend purple-key">ℒ(Δf)</span><span class="legend gray-key">Suelo blanco</span><span class="legend orange-key" id="saved-legend" hidden>Comparación guardada</span></div><canvas id="spectrum" height="290" aria-label="Ruido de fase de banda lateral única en dBc por hercio frente a separación de la portadora en escala logarítmica"></canvas><div class="spectrum-metrics"><div><span id="offset-label"></span><strong id="noise-readout"></strong></div><div><span>Frecuencia de Leeson</span><strong id="leeson-readout"></strong></div><div><span id="jitter-band">Jitter RMS · 1 kHz–1 MHz</span><strong id="jitter-readout"></strong></div></div><p class="caption">Cada punto indica la potencia de ruido en una banda de 1 Hz, relativa a la portadora. Un valor más negativo significa menos ruido. Δf es la separación respecto a f₀.</p><div class="button-row"><button class="outline-button" id="save-curve">＋ Guardar curva para comparar</button><button class="text-button" id="clear-curve" hidden>Borrar comparación</button><button class="text-button" id="export-noise">↓ CSV</button></div></article>
+          <article class="card"><div class="card-head"><div><p class="eyebrow">LA PUREZA DE LA OSCILACIÓN</p><h2>Una portadora nunca está completamente sola</h2></div><span class="pill">Modelo de Leeson</span></div><div class="plot-key"><span class="legend purple-key">ℒ(Δf)</span><span class="legend gray-key">Suelo blanco</span><span class="legend orange-key" id="saved-legend" hidden>Comparación guardada</span></div><canvas id="spectrum" height="290" aria-label="Ruido de fase de banda lateral única en dBc por hercio frente a separación de la portadora en escala logarítmica"></canvas><div class="spectrum-metrics"><div><span id="offset-label"></span><strong id="noise-readout"></strong></div><div><span>Frecuencia de Leeson</span><strong id="leeson-readout"></strong></div><div><span id="jitter-band">Jitter RMS · 1 kHz–1 MHz</span><strong id="jitter-readout"></strong></div></div><p class="caption">Cada punto indica la potencia de ruido en una banda de 1 Hz, relativa a la portadora. Un valor más negativo significa menos ruido. Δf es la separación respecto a f₀.</p><details class="leeson-explainer"><summary>¿Qué significa la frecuencia de Leeson?</summary><p>Es una separación respecto a la portadora, calculada como <strong>f<sub>L</sub> = f₀/(2Q)</strong>. Equivale a la mitad del ancho de banda de potencia del resonador. Cuanto mayor es Q, menor es esta frecuencia.</p><p id="leeson-example"></p><p>El factor 1 + (f<sub>L</sub>/Δf)² amplifica la contribución del ruido. Para Δf mucho menor que f<sub>L</sub>, domina la dependencia 1/Δf². El ruido aumenta unos 20 dB por cada década que nos acercamos a la portadora, si el flicker no domina. Para Δf mucho mayor que f<sub>L</sub>, este factor tiende a uno. En Δf = f<sub>L</sub>, este factor vale dos y añade unos 3 dB. El nivel total incluye también el término de flicker.</p><p>La esquina de flicker f<sub>c</sub> corresponde a otro mecanismo. Si Δf es mucho menor que ambas esquinas, el modelo puede dar una pendiente de −30 dB por década al alejarnos de la portadora.</p></details><div class="button-row"><button class="outline-button" id="save-curve">＋ Guardar curva para comparar</button><button class="text-button" id="clear-curve" hidden>Borrar comparación</button><button class="text-button" id="export-noise">↓ CSV</button></div></article>
           <article class="card"><div class="card-head"><div><p class="eyebrow">EL MISMO CONCEPTO, EN EL TIEMPO</p><h2 id="phase-heading">Los cruces por cero ya no llegan a tiempo</h2></div><div class="transport"><button id="phase-play" class="icon-button" aria-label="Pausar fluctuaciones">Ⅱ</button><div class="segmented"><button data-mod="pm" class="selected">Fase</button><button data-mod="am">Amplitud</button></div></div></div><div class="phase-layout"><div><div class="plot-key"><span class="legend gray-key">Ideal</span><span class="legend purple-key">Con fluctuaciones</span></div><canvas id="phase-wave" height="170" aria-label="Comparación conceptual entre señal ideal y señal con ruido de fase o de amplitud"></canvas></div><canvas id="phasor" height="195" aria-label="Fasor con perturbaciones angulares para ruido de fase y radiales para ruido de amplitud"></canvas></div><label class="exaggeration" for="exaggeration">Exageración visual <input type="range" id="exaggeration" min="0" max="1" step="0.01" value="0.45"><output id="exaggeration-out">45 %</output></label><p class="caption" id="phase-caption">En fase cambia el ángulo del fasor, mientras su longitud permanece constante. Esta animación conceptual exagera las fluctuaciones y no sintetiza el espectro de Leeson de arriba.</p></article>
         </div><aside class="card controls"><h2>Esculpe el espectro</h2><p class="control-intro">Cambia una variable, guarda la curva y compara el resultado.</p>
-          <label class="slider-label" for="noise-q">Calidad Q <output id="noise-q-out"></output></label><input id="noise-q" type="range" min="20" max="200" step="1" value="60">
-          <label class="slider-label" for="noise-freq">Frecuencia f₀ <output id="noise-freq-out"></output></label><input id="noise-freq" type="range" min="1" max="100" step="1" value="10">
+          <label class="slider-label" for="noise-q">Calidad Q <output id="noise-q-out"></output></label><input id="noise-q" type="range" min="5" max="100" step="1" value="10">
+          <label class="slider-label" for="noise-freq">Frecuencia f₀ <output id="noise-freq-out"></output></label><input id="noise-freq" type="range" min="500" max="6000" step="1" value="2400">
           <label class="slider-label" for="power">Potencia en el resonador <output id="power-out"></output></label><input id="power" type="range" min="-10" max="20" step="1" value="0">
           <label class="slider-label" for="nf">Figura de ruido <output id="nf-out"></output></label><input id="nf" type="range" min="0" max="20" step="1" value="6">
           <label class="slider-label" for="flicker">Esquina de flicker <output id="flicker-out"></output></label><input id="flicker" type="range" min="0" max="5" step="0.1" value="3">
-          <label class="slider-label" for="offset">Punto de lectura Δf <output id="offset-out"></output></label><input id="offset" type="range" min="2" max="7" step="0.05" value="4">
+          <label class="slider-label" for="offset">Punto de lectura Δf <output id="offset-out"></output></label><input id="offset" type="range" min="2" max="9" step="0.05" value="4">
           <div class="takeaway"><span>PRUEBA ESTO</span><p>Guarda la curva y duplica Q. Cerca de la portadora, el ruido baja aproximadamente 6 dB. Lejos de ella, el suelo apenas cambia.</p></div>
           <p class="field-help" id="noise-assumptions"></p>
         </aside></div>
       </section>
       <section id="panel-circuit" role="tabpanel" aria-labelledby="tab-circuit" class="panel" hidden>
-        <div class="nic-intro"><div><p class="eyebrow">DEL BLOQUE EQUIVALENTE A LOS COMPONENTES</p><h2>Una resistencia negativa hecha con un operacional</h2><p>El amplificador eleva la tensión de salida y, a través de R<sub>N</sub>, devuelve corriente al resonador. Sigue el recorrido y comprueba el signo de esa corriente.</p></div><span class="nic-frequency">≈ 16 kHz <small>Ejemplo independiente de las vistas en MHz</small></span></div>
-        <div class="workspace nic-workspace"><div class="visual-column">
-          <article class="card nic-schematic-card">
-            <div class="card-head"><div><p class="eyebrow">NIC · CONVERTIDOR DE IMPEDANCIA NEGATIVA</p><h2>OPA197 en configuración no inversora</h2></div><button id="nic-show-all" class="text-button">Ver todo el circuito</button></div>
-            <div class="nic-diagram-scroll" tabindex="0" role="region" aria-label="Esquema completo del NIC. En pantallas pequeñas puede desplazarse horizontalmente.">
-              <svg id="nic-schematic" class="nic-schematic" viewBox="0 0 850 530" role="img" aria-labelledby="nic-svg-title nic-svg-description">
-                <title id="nic-svg-title">Oscilador LC con OPA197, resistencia de retorno y limitador con diodos</title>
-                <desc id="nic-svg-description">El nodo v conecta L, C y Rp a masa y a la entrada no inversora del OPA197. RN conecta la salida a ese nodo. La entrada inversora conecta a masa mediante Rg y a la salida mediante Rf1 y Rf2 en serie. Dos diodos antiparalelo puentean Rf2. Alimentación más y menos cinco voltios.</desc>
-                <defs><marker id="nic-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="currentColor"/></marker></defs>
-                <rect x="25" y="155" width="265" height="330" rx="18" class="nic-region"/>
-                <text x="155" y="181" text-anchor="middle" class="nic-kicker">RESONADOR Y PÉRDIDAS</text>
-                <g data-nic-part="resonator">
-                  <path d="M70 210H310 M70 450H250" class="nic-wire"/>
-                  <path d="M70 210v30c-20 0-20 15 0 15c-20 0-20 15 0 15c-20 0-20 15 0 15c-20 0-20 15 0 15v30m0 42v78" class="nic-wire"/>
-                  <rect x="61" y="330" width="18" height="42" class="nic-resistor loss"/>
-                  <text x="88" y="269" class="nic-label">L</text><text x="88" y="287" class="nic-value">10 mH</text><text x="88" y="346" class="nic-label">r<tspan baseline-shift="sub" font-size="9">L</tspan></text><text id="nic-svg-coil" x="88" y="365" class="nic-value">20 Ω</text>
-                  <path d="M160 210v99m-18 0h36m-36 13h36m-18 0v128" class="nic-wire"/>
-                  <text x="179" y="304" class="nic-label">C</text><text x="179" y="340" class="nic-value">10 nF</text>
-                  <path d="M250 210v85m0 46v109" class="nic-wire"/><rect x="241" y="295" width="18" height="46" class="nic-resistor loss"/>
-                  <text x="265" y="310" class="nic-label">R<tspan baseline-shift="sub" font-size="9">p</tspan></text><text x="265" y="331" class="nic-value">10 kΩ</text>
-                  <path d="M160 450v15m-13 0h26m-21 6h16m-12 6h8" class="nic-wire"/>
-                  <circle cx="70" cy="210" r="3"/><circle cx="160" cy="210" r="3"/><circle cx="250" cy="210" r="3"/><circle cx="160" cy="450" r="3"/>
-                </g>
-                <g data-nic-part="port">
-                  <path d="M310 210H425" class="nic-wire"/><circle cx="310" cy="210" r="5" class="nic-node"/><text x="328" y="194" class="nic-port-label">v</text><text id="nic-svg-v" x="334" y="235" class="nic-value">+0,20 V</text>
-                </g>
-                <g data-nic-part="amp">
-                  <path d="M425 172 570 240 425 308Z" class="nic-opamp"/><text x="439" y="218" class="nic-sign">+</text><text x="439" y="276" class="nic-sign">−</text><text x="479" y="244" class="nic-label">OPA197</text><text x="411" y="203" class="nic-pin">3</text><text x="411" y="262" class="nic-pin">2</text><text x="573" y="232" class="nic-pin">6</text>
-                  <path d="M570 240H755" class="nic-wire"/><circle cx="755" cy="240" r="4" class="nic-node"/><text x="769" y="235" class="nic-port-label">v<tspan baseline-shift="sub" font-size="10">o</tspan></text><text id="nic-svg-vo" x="769" y="257" class="nic-value">+0,40 V</text>
-                  <path d="M480 198V148 M480 282v43" class="nic-wire supply"/><text x="480" y="137" text-anchor="middle" class="nic-value">+5 V</text><text x="480" y="345" text-anchor="middle" class="nic-value">−5 V</text><text x="488" y="180" class="nic-pin">7</text><text x="488" y="310" class="nic-pin">4</text>
-                </g>
-                <g data-nic-part="rn">
-                  <path d="M310 210V82H495 M560 82H755V240" class="nic-wire"/><rect x="495" y="73" width="65" height="18" class="nic-resistor"/>
-                  <text x="527" y="52" text-anchor="middle" class="nic-label">R<tspan baseline-shift="sub" font-size="9">N</tspan></text><text id="nic-svg-rn" x="527" y="116" text-anchor="middle" class="nic-value">6,8 kΩ</text>
-                  <path d="M351 64h65" class="nic-current-reference" marker-end="url(#nic-arrow)"/><text x="380" y="46" text-anchor="middle" class="nic-kicker">i ENTRANDO AL NIC</text>
-                  <path id="nic-current-flow" d="M685 103H610" class="nic-current-flow" marker-end="url(#nic-arrow)"/><text id="nic-svg-i" x="670" y="128" text-anchor="middle" class="nic-value">−29,7 µA</text>
-                </g>
-                <g data-nic-part="feedback">
-                  <path d="M425 270H375V390H435 M490 390H555 M625 390H755V240 M375 390v35m0 48v17" class="nic-wire"/>
-                  <rect x="435" y="381" width="55" height="18" class="nic-resistor"/><text x="462" y="370" text-anchor="middle" class="nic-label">R<tspan baseline-shift="sub" font-size="9">f1</tspan></text><text x="462" y="420" text-anchor="middle" class="nic-value">3,3 kΩ</text>
-                  <rect x="555" y="381" width="70" height="18" class="nic-resistor"/><text x="590" y="420" text-anchor="middle" class="nic-label">R<tspan baseline-shift="sub" font-size="9">f2</tspan> = 6,8 kΩ</text>
-                  <rect x="366" y="425" width="18" height="48" class="nic-resistor"/><text x="401" y="449" class="nic-label">R<tspan baseline-shift="sub" font-size="9">g</tspan></text><text x="401" y="469" class="nic-value">10 kΩ</text><path d="M362 490h26m-21 6h16m-12 6h8" class="nic-wire"/>
-                  <circle cx="375" cy="390" r="3"/><circle cx="755" cy="240" r="3"/>
-                </g>
-                <g data-nic-part="limit">
-                  <path d="M530 390V310H575 M605 310H655V390 M530 345H575 M605 345H655" class="nic-wire"/>
-                  <path d="M575 301 595 310 575 319Z M600 301v18 M575 310h-1m21 0h9 M605 336 585 345 605 354Z M580 336v18 M575 345h9m21 0h1" class="nic-diode"/>
-                  <circle cx="530" cy="390" r="3"/><circle cx="655" cy="390" r="3"/><circle cx="530" cy="345" r="3"/><circle cx="655" cy="345" r="3"/>
-                  <text x="670" y="314" class="nic-value">D1</text><text x="670" y="350" class="nic-value">D2</text><text x="590" y="290" text-anchor="middle" class="nic-kicker">1N4148 EN ANTIPARALELO</text>
-                </g>
-                <text x="563" y="478" class="nic-value">100 nF desde cada alimentación a masa</text><text x="563" y="497" class="nic-kicker">CERCA DEL OPA197 · PINES PARA SOIC-8</text>
-              </svg>
-            </div>
-            <p class="caption nic-scroll-hint">En móvil, desliza el esquema para ver todos los componentes.</p>
-            <p class="caption">R<sub>p</sub> es un resistor externo. r<sub>L</sub> representa la pérdida serie equivalente de la bobina a la frecuencia de trabajo. El control de tensión indica un instante de la oscilación, sin añadir un generador al circuito.</p>
+        <div class="rf-intro"><div><p class="eyebrow">OSCILADOR LC CON MOSFET A GHz</p><h2>Dos NMOS cruzados sostienen la oscilación</h2><p>Un núcleo CMOS RF con carga inductiva y polarización de cola. La conexión entre cada drenador y la puerta opuesta crea una resistencia negativa diferencial.</p></div><span class="rf-frequency"><span id="rf-frequency">2,399 GHz</span><small>Ejemplo nominal · VDD = 1,8 V</small></span></div>
+        <div class="workspace rf-workspace"><div class="visual-column">
+          <article class="card rf-schematic-card"><div class="card-head"><div><p class="eyebrow">TOPOLOGÍA DE OSCILADOR CMOS RF</p><h2>Par NMOS con acoplamiento cruzado</h2></div><button id="rf-show-all" class="text-button">Ver todo el circuito</button></div>
+            <div class="rf-diagram-scroll" tabindex="0" role="region" aria-label="Esquema del oscilador NMOS a GHz. En móvil puede desplazarse horizontalmente."><svg id="rf-schematic" class="rf-schematic" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 640" role="img" aria-labelledby="rf-schematic-title rf-schematic-desc">
+  <title id="rf-schematic-title">Núcleo CMOS RF · ejemplo nominal de 2,4 GHz</title>
+  <desc id="rf-schematic-desc">Oscilador diferencial con dos NMOS de acoplamiento cruzado. Cada drenador conecta a VDD mediante una inductancia de 2,2 nanohenrios. Un condensador diferencial total de 1 picofaradio une ambos drenadores. La puerta de M1 conecta al drenador de M2 y la puerta de M2 al drenador de M1. El cruce de estas conexiones no tiene unión eléctrica. Las fuentes de M1 y M2 se unen al drenador del NMOS de cola M3, cuya puerta recibe Vbias y cuya fuente conecta a masa. M3 establece una corriente de cola nominal de 2 miliamperios.</desc>
+  <style>
+    .rf-wire{fill:none;stroke:#777186;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .rf-device{fill:none;stroke:#6853cf;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
+    .rf-cross-wire{fill:none;stroke:#8f7cc6;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+    .rf-node{fill:#6853cf}
+    .rf-region{fill:#f5f2fc;stroke:#e5def5;stroke-width:1}
+    .rf-label{font:16px "Segoe UI",Arial,sans-serif;fill:#514b60}
+    .rf-value{font:14px Consolas,"SFMono-Regular",monospace;fill:#75668f}
+    .rf-note{font:12px "Segoe UI",Arial,sans-serif;fill:#93859e}
+    .rf-title{font:15px "Segoe UI",Arial,sans-serif;fill:#6853cf;font-weight:600}
+    .rf-port{font:italic 19px Georgia,serif;fill:#6853cf}
+    .rf-pin{font:12px Consolas,monospace;fill:#93859e}
+    .rf-guide{fill:none;stroke:#b5a9cd;stroke-width:1.2;stroke-dasharray:3 4}
+    .rf-current-arrow{fill:none;stroke:#3c8071;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    [data-rf-part]{transition:opacity .18s}
+  </style>
+  <text x="425" y="27" text-anchor="middle" class="rf-title">Núcleo CMOS RF · ejemplo nominal de 2,4 GHz</text>
+  <rect x="160" y="91" width="530" height="165" rx="20" class="rf-region"/>
+  <g data-rf-part="tank">
+    <path d="M250 108V75H730V117 M600 75v33" class="rf-wire"/>
+    <circle cx="425" cy="75" r="3.5" class="rf-node"/>
+    <circle cx="600" cy="75" r="3" class="rf-node"/>
+    <text x="425" y="58" text-anchor="middle" class="rf-label">VDD = 1,8 V</text>
+    <path d="M250 108c-25 0-25 19 0 19c-25 0-25 19 0 19c-25 0-25 19 0 19c-25 0-25 19 0 19v46 M600 108c25 0 25 19 0 19c25 0 25 19 0 19c25 0 25 19 0 19c25 0 25 19 0 19v46" class="rf-wire"/>
+    <text x="281" y="137" class="rf-label">L1</text>
+    <text x="281" y="160" class="rf-value">2,2 nH</text>
+    <text x="570" y="137" text-anchor="end" class="rf-label">L2</text>
+    <text x="570" y="160" text-anchor="end" class="rf-value">2,2 nH</text>
+    <path d="M250 230H416m0-18v36m18-36v36m0-18H600" class="rf-wire"/>
+    <text id="rf-svg-cap" x="425" y="194" text-anchor="middle" class="rf-value">Cd = 1,00 pF</text>
+    <path d="M713 117h34m-34 14h34m-17 0v45m-13 0h26m-21 6h16m-12 6h8" class="rf-wire"/>
+    <text x="759" y="127" class="rf-label">Cdec</text>
+    <text x="730" y="210" text-anchor="middle" class="rf-note">Desacoplo RF</text>
+    <text x="425" y="276" text-anchor="middle" class="rf-note">Q cargado nominal = 10 · C total incluye las parásitas</text>
+  </g>
+  <g data-rf-part="port">
+    <circle cx="250" cy="230" r="4.5" class="rf-node"/>
+    <circle cx="600" cy="230" r="4.5" class="rf-node"/>
+    <text x="229" y="222" text-anchor="end" class="rf-port">v₁</text>
+    <text x="621" y="222" class="rf-port">v₂</text>
+    <text id="rf-svg-vdiff" x="425" y="305" text-anchor="middle" class="rf-value">vd = +30 mV</text>
+  </g>
+  <g data-rf-part="m1">
+    <path d="M250 230V360H270 M270 422H250V465" class="rf-wire"/>
+    <path d="M270 360v17m0 6v16m0 6v17 M300 357v68" class="rf-device"/>
+    <text x="236" y="354" text-anchor="end" class="rf-pin">D</text>
+    <text x="309" y="413" class="rf-pin">G</text>
+    <text x="236" y="440" text-anchor="end" class="rf-pin">S</text>
+    <text x="199" y="382" text-anchor="end" class="rf-label">M1 · NMOS</text>
+    <text id="rf-svg-id1" x="199" y="405" text-anchor="end" class="rf-value">ID1 = 0,940 mA</text>
+    <path d="M224 307v25m-5-6 5 6 5-6" class="rf-current-arrow"/>
+  </g>
+  <g data-rf-part="m2">
+    <path d="M600 230V360H580 M580 422H600V465" class="rf-wire"/>
+    <path d="M580 360v17m0 6v16m0 6v17 M550 357v68" class="rf-device"/>
+    <text x="614" y="354" class="rf-pin">D</text>
+    <text x="540" y="413" text-anchor="end" class="rf-pin">G</text>
+    <text x="614" y="440" class="rf-pin">S</text>
+    <text x="651" y="382" class="rf-label">M2 · NMOS</text>
+    <text id="rf-svg-id2" x="651" y="405" class="rf-value">ID2 = 1,060 mA</text>
+    <path d="M626 307v25m-5-6 5 6 5-6" class="rf-current-arrow"/>
+  </g>
+  <g data-rf-part="cross">
+    <path d="M250 300 550 390" class="rf-cross-wire"/>
+    <path d="M437 349 Q422 329 413 356" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+    <path d="M600 300 437 349 Q422 329 413 356 L300 390" class="rf-cross-wire"/>
+    <circle cx="250" cy="300" r="3.5" class="rf-node"/>
+    <circle cx="600" cy="300" r="3.5" class="rf-node"/>
+    <path d="M425 361v60" class="rf-guide"/>
+    <text x="425" y="442" text-anchor="middle" class="rf-note">Cruce sin conexión</text>
+  </g>
+  <g data-rf-part="tail">
+    <path d="M250 465H600 M425 465v28h15 M440 550H425v27 M346 522H408" class="rf-wire"/>
+    <path d="M440 493v15m0 6v15m0 6v15 M408 491v61" class="rf-device"/>
+    <circle cx="425" cy="465" r="4" class="rf-node"/>
+    <text x="330" y="526" text-anchor="end" class="rf-label">Vbias</text>
+    <text x="462" y="523" class="rf-label">M3 · NMOS de cola</text>
+    <text id="rf-svg-tail" x="462" y="547" class="rf-value">IT = 2,0 mA</text>
+    <path d="M412 577h26m-21 6h16m-12 6h8" class="rf-wire"/>
+  </g>
+  <text id="rf-svg-gm" x="165" y="515" text-anchor="middle" class="rf-value">gm = 4,0 mS por NMOS</text>
+  <text x="165" y="536" text-anchor="middle" class="rf-note">Valor de pequeña señal</text>
+  <text x="425" y="613" text-anchor="middle" class="rf-note">Esquema funcional · cuerpos y parásitos no dibujados · sin modelo de proceso</text>
+  <text x="425" y="633" text-anchor="middle" class="rf-note">Ldiff = L1 + L2 = 4,4 nH en el modelo sin acoplamiento magnético</text>
+</svg>
+</div>
+            <p class="caption rf-scroll-hint">En móvil, desliza el esquema para ver todos los componentes.</p><p class="caption">L<sub>d</sub> = L₁ + L₂ = 4,4 nH, sin inductancia mutua en este modelo. C<sub>d</sub> es la capacidad diferencial total, incluidas las contribuciones parásitas. Los valores de polarización y g<sub>m</sub> son parámetros nominales de un ejemplo integrado.</p>
           </article>
-          <article class="card nic-walkthrough">
-            <div class="card-head"><div><p class="eyebrow">SIGUE EL FUNCIONAMIENTO</p><h2>Del voltaje a la corriente que sostiene la oscilación</h2></div><span class="pill" id="nic-step-count">Paso 1 de 6</span></div>
-            <div class="nic-step-nav" aria-label="Pasos de funcionamiento"><button data-nic-step="0" aria-pressed="true">1 <span>La señal</span></button><button data-nic-step="1" aria-pressed="false">2 <span>La ganancia</span></button><button data-nic-step="2" aria-pressed="false">3 <span>La corriente</span></button><button data-nic-step="3" aria-pressed="false">4 <span>El signo</span></button><button data-nic-step="4" aria-pressed="false">5 <span>El arranque</span></button><button data-nic-step="5" aria-pressed="false">6 <span>El límite</span></button></div>
-            <div class="nic-step-body" aria-live="polite"><h3 id="nic-step-title"></h3><p id="nic-step-text"></p><div class="nic-step-equation" id="nic-step-equation"></div><p id="nic-step-example"></p></div>
-            <div class="nic-step-actions"><button class="outline-button" id="nic-prev">← Anterior</button><button class="primary-button" id="nic-next">Siguiente paso →</button></div>
+          <article class="card rf-walkthrough"><div class="card-head"><div><p class="eyebrow">SIGUE LA REALIMENTACIÓN</p><h2>Cómo aparece la resistencia negativa</h2></div><span class="pill" id="rf-step-count">Paso 1 de 6</span></div>
+            <div class="rf-step-nav" aria-label="Pasos del oscilador MOSFET"><button data-rf-step="0" aria-pressed="true">1 <span>La polarización</span></button><button data-rf-step="1" aria-pressed="false">2 <span>El desequilibrio</span></button><button data-rf-step="2" aria-pressed="false">3 <span>La reacción</span></button><button data-rf-step="3" aria-pressed="false">4 <span>El signo</span></button><button data-rf-step="4" aria-pressed="false">5 <span>El arranque</span></button><button data-rf-step="5" aria-pressed="false">6 <span>La amplitud</span></button></div>
+            <div class="rf-step-body" aria-live="polite"><h3 id="rf-step-title"></h3><p id="rf-step-text"></p><div class="rf-step-equation" id="rf-step-equation"></div><p id="rf-step-example"></p></div><div class="rf-step-actions"><button class="outline-button" id="rf-prev">← Anterior</button><button class="primary-button" id="rf-next">Siguiente paso →</button></div>
           </article>
-          <article class="card nic-iv-card"><div class="card-head"><div><p class="eyebrow">LA PENDIENTE ES NEGATIVA</p><h2>Una corriente con el signo contrario al voltaje</h2></div><span class="pill">Diodos sin conducir</span></div><svg id="nic-iv" class="nic-iv" viewBox="0 0 700 235" role="img" aria-label="Recta de corriente entrante frente a tensión, con pendiente negativa, y punto de trabajo seleccionado"></svg><p class="caption">La flecha i del esquema fija el sentido positivo hacia el NIC. Un valor negativo indica corriente desde el amplificador al resonador. En ambos semiciclos, v·i &lt; 0 indica entrega de potencia por el puerto activo.</p></article>
-        <article class="card nic-limiter-card"><div class="card-head"><div><p class="eyebrow">ESTABILIZACIÓN DE LA AMPLITUD</p><h2>Los diodos reducen el aporte antes de llegar a los raíles</h2></div><span class="pill">Aproximación por tramos</span></div><div class="nic-limiter-layout"><div><svg id="nic-limiter-chart" viewBox="0 0 660 235" role="img" aria-label="Compensación de pérdidas en función de la amplitud, con y sin diodos, y amplitud de equilibrio aproximada"></svg><div class="plot-key"><span class="legend purple-key">Con D1 y D2</span><span class="legend gray-key">Sin limitación</span><span class="legend orange-key">Pérdidas = 1</span></div></div><div><p>Con poca señal, ambos diodos están prácticamente abiertos y K ≈ 2,01. Cuando crece la tensión sobre R<sub>f2</sub>, los diodos conducen alternativamente y reducen su contribución al retorno.</p><p>La ganancia incremental tiende a 1 + R<sub>f1</sub>/R<sub>g</sub> = 1,33. Así disminuye la componente de corriente que aporta energía a la oscilación.</p><p id="nic-amplitude-result" class="nic-numeric-note"></p><p class="caption">Estimación mediante la componente fundamental para una tensión sinusoidal. Los diodos se aproximan con una caída de 0,6 V. El resultado no incluye el modelo dinámico del OPA197 ni sustituye una simulación de circuito.</p></div></div></article>
-        </div>
-        <aside class="card controls nic-controls"><h2>Comprueba los números</h2><p class="control-intro">Cambia el signo de v y observa la salida y la corriente. Después, aumenta las pérdidas de la bobina.</p>
-          <label class="slider-label" for="nic-voltage">Tensión instantánea v <output id="nic-voltage-out"></output></label><input id="nic-voltage" type="range" min="-0.5" max="0.5" value="0.2" step="0.01"><div class="range-labels"><span>Semiciclo negativo</span><span>Semiciclo positivo</span></div>
-          <label class="slider-label" for="nic-rn"><span>Resistencia R<sub>N</sub></span> <output id="nic-rn-out"></output></label><input id="nic-rn" type="range" min="6800" max="15000" value="6800" step="100">
-          <label class="slider-label" for="nic-coil"><span>Pérdida serie r<sub>L</sub></span> <output id="nic-coil-out"></output></label><input id="nic-coil" type="range" min="0" max="80" value="20" step="1">
-          <div class="nic-readouts"><div><span>Ganancia de pequeña señal</span><strong>K = 2,01</strong></div><div><span>Salida v<sub>o</sub></span><strong id="nic-out-v"></strong></div><div><span>Corriente entrante i</span><strong id="nic-out-i"></strong></div><div><span>Resistencia vista por el LC</span><strong id="nic-out-r"></strong></div><div><span>Potencia absorbida v·i</span><strong id="nic-out-p"></strong></div></div>
-          <div id="nic-start-status" class="status-box" aria-live="polite"></div><button id="nic-reset" class="outline-button">Restaurar el ejemplo</button>
-          <div class="takeaway"><span>DOS REALIMENTACIONES</span><p>R<sub>f1</sub>, R<sub>f2</sub> y R<sub>g</sub> fijan la ganancia mediante realimentación negativa local. R<sub>N</sub> devuelve corriente al resonador y produce la resistencia negativa vista desde v.</p></div>
+          <article class="card rf-iv-card"><div class="card-head"><div><p class="eyebrow">PUERTO DIFERENCIAL ENTRE LOS DRENADORES</p><h2>Una pendiente negativa en pequeña señal</h2></div><span class="pill">R<sub>neg,d</sub> = −2/g<sub>m</sub></span></div><svg id="rf-iv" class="rf-iv" viewBox="0 0 700 245" role="img" aria-label="Corriente incremental diferencial en función de la tensión entre los drenadores. Su pendiente es negativa."></svg><div class="plot-key"><span class="legend purple-key">Modelo de reparto de corriente</span><span class="legend gray-key">Pendiente de pequeña señal</span></div><p class="caption">v<sub>d</sub> = v₁ − v₂ e i<sub>d</sub> = (ΔI<sub>D1</sub> − ΔI<sub>D2</sub>)/2. El signo negativo corresponde a la corriente incremental del puerto RF. Las corrientes totales de drenador siguen circulando hacia las fuentes.</p></article>
+          <article class="card rf-limiter-card"><div class="card-head"><div><p class="eyebrow">DE LA TRANSCONDUCTANCIA A LA CONMUTACIÓN</p><h2>La corriente disponible limita el crecimiento</h2></div><span class="pill">Modelo conductual</span></div><div class="rf-limiter-layout"><div><svg id="rf-limiter-chart" viewBox="0 0 660 245" role="img" aria-label="Compensación fundamental de pérdidas frente a amplitud diferencial con limitación por corriente"></svg><div class="plot-key"><span class="legend purple-key">Con reparto limitado de corriente</span><span class="legend gray-key">Extrapolación lineal</span><span class="legend orange-key">Pérdidas = 1</span></div></div><div><p>Al crecer la señal, la corriente de cola se concentra alternativamente en M1 y M2. La componente fundamental de corriente ya no aumenta en proporción a la tensión, de modo que la conductancia negativa efectiva disminuye.</p><p id="rf-amplitude-result" class="rf-numeric-note"></p><p class="caption">La curva usa i<sub>d</sub> = −(I<sub>T</sub>/2) tanh(g<sub>m</sub>v<sub>d</sub>/I<sub>T</sub>) como ley de reparto ilustrativa. Conserva la pendiente inicial y limita las corrientes. No es la ley exacta de un MOSFET ni una simulación con modelos de proceso.</p></div></div></article>
+        </div><aside class="card controls rf-controls"><h2>Explora el núcleo RF</h2><p class="control-intro">Invierte la perturbación, ajusta g<sub>m</sub> y observa cuándo el par puede compensar las pérdidas.</p>
+          <label class="slider-label" for="rf-voltage"><span>Perturbación v<sub>d</sub></span><output id="rf-voltage-out"></output></label><input id="rf-voltage" type="range" min="-50" max="50" value="30" step="1"><div class="range-labels"><span>v₁ &lt; v₂</span><span>v₁ &gt; v₂</span></div>
+          <label class="slider-label" for="rf-gm"><span>g<sub>m</sub> de cada NMOS</span><output id="rf-gm-out"></output></label><input id="rf-gm" type="range" min="0.5" max="8" value="4" step="0.1">
+          <label class="slider-label" for="rf-q">Q cargado del tanque<output id="rf-q-out"></output></label><input id="rf-q" type="range" min="5" max="20" value="10" step="1">
+          <label class="slider-label" for="rf-cap"><span>Capacidad diferencial C<sub>d</sub></span><output id="rf-cap-out"></output></label><input id="rf-cap" type="range" min="0.5" max="2" value="1" step="0.05">
+          <label class="slider-label" for="rf-tail"><span>Corriente de cola I<sub>T</sub></span><output id="rf-tail-out"></output></label><input id="rf-tail" type="range" min="1" max="4" value="2" step="0.1">
+          <p class="field-help">g<sub>m</sub> e I<sub>T</sub> se varían de forma independiente para aislar sus efectos. En un diseño físico dependen también del tamaño del MOSFET y de su polarización.</p>
+          <div class="rf-readouts"><div><span>Corrientes totales de drenador</span><strong id="rf-out-id"></strong></div><div><span>Corriente incremental i<sub>d</sub></span><strong id="rf-out-i"></strong></div><div><span>Resistencia negativa diferencial</span><strong id="rf-out-r"></strong></div><div><span>Pérdidas equivalentes R<sub>p,d</sub></span><strong id="rf-out-rp"></strong></div><div><span>Umbral g<sub>m</sub> por transistor</span><strong id="rf-out-threshold"></strong></div></div>
+          <div id="rf-start-status" class="status-box" aria-live="polite"></div><button id="rf-reset" class="outline-button">Restaurar el ejemplo de 2,4 GHz</button>
+          <div class="takeaway"><span>EL FACTOR DOS IMPORTA</span><p>La resistencia −2/g<sub>m</sub> se mide entre ambos drenadores. En el semicircuito, respecto a masa virtual, aparece −1/g<sub>m</sub>. R<sub>p,d</sub> y C<sub>d</sub> de esta vista también son diferenciales.</p></div>
         </aside></div>
-        <details class="model-details nic-details"><summary>Componentes, cálculo y límites del ejemplo <span>Para llevarlo al laboratorio</span></summary><div class="details-grid"><div><h3>Montaje propuesto</h3><p>Usa un OPA197 con alimentación simétrica de ±5 V y dos condensadores de desacoplo de 100 nF, uno desde cada alimentación a masa. El esquema indica los pines del encapsulado SOIC-8. Comprueba el pinout si utilizas otro encapsulado.</p><p>La red usa R<sub>g</sub> = 10 kΩ, R<sub>f1</sub> = 3,3 kΩ y R<sub>f2</sub> = 6,8 kΩ, junto con dos diodos 1N4148 en antiparalelo sobre R<sub>f2</sub>. El valor inicial de R<sub>N</sub> es 6,8 kΩ. El resonador tiene L = 10 mH y C = 10 nF, con un resistor externo R<sub>p</sub> = 10 kΩ.</p><p>r<sub>L</sub> reúne las pérdidas de la bobina a unos 16 kHz. El valor inicial de 20 Ω es una hipótesis del ejemplo, no la especificación de una bobina seleccionada. La resistencia en continua por sí sola puede infravalorar las pérdidas de núcleo y de alta frecuencia.</p><p>Las resistencias y la carga de medida modifican el margen de arranque. Comprueba la impedancia real de la bobina, su frecuencia de autorresonancia, el desacoplo y la carga de la sonda. La bobina proporciona el camino de continua del nodo v a masa. No se ha construido ni validado experimentalmente este montaje.</p></div><div><h3>Relación con el modelo equivalente</h3><p>Mientras los diodos no conducen y el operacional mantiene su realimentación local, v<sub>−</sub> ≈ v<sub>+</sub> = v. La corriente de entrada del operacional se desprecia.</p><p class="equation">K = 1 + (R<sub>f1</sub> + R<sub>f2</sub>)/R<sub>g</sub><br>i = (v − v<sub>o</sub>)/R<sub>N</sub> = −(K − 1)v/R<sub>N</sub><br>R<sub>neg</sub> = −R<sub>N</sub>/(K − 1)</p><p>Para la bobina con pérdida serie, la cancelación de susceptancias se produce a ω<sub>r</sub>² = 1/(LC) − (r<sub>L</sub>/L)². En esa frecuencia, G<sub>pérdidas</sub> = 1/R<sub>p</sub> + r<sub>L</sub>C/L. El arranque nominal requiere (K − 1)/R<sub>N</sub> &gt; G<sub>pérdidas</sub>.</p><p>La topología se describe en <a href="https://wiki.analog.com/university/courses/electronics/text/chapter-4#negative_impedance_converter" target="_blank" rel="noopener">el curso de electrónica de Analog Devices</a>. Consulta las hojas de datos del <a href="https://www.ti.com/lit/ds/symlink/opa197.pdf" target="_blank" rel="noopener">OPA197</a> y de la <a href="https://www.vishay.com/docs/81857/1n4148.pdf" target="_blank" rel="noopener">1N4148</a> para límites, encapsulados y comportamiento real. Los parámetros nominales de esta vista son independientes de los controles de las otras pestañas.</p></div></div></details>
+        <details class="model-details rf-details"><summary>Del esquema docente a un diseño CMOS a GHz <span>Definiciones y límites</span></summary><div class="details-grid"><div><h3>Qué representa este circuito</h3><p>La topología es un oscilador LC diferencial con dos NMOS acoplados en cruz. M3, polarizado mediante V<sub>bias</sub>, establece aproximadamente la corriente de cola. VDD es 1,8 V en el ejemplo. Los valores iniciales son L₁ = L₂ = 2,2 nH, C<sub>d</sub> = 1 pF, Q = 10, g<sub>m</sub> = 4 mS por transistor e I<sub>T</sub> = 2 mA.</p><p>Los MOSFET deben elegirse y dimensionarse dentro de una tecnología CMOS RF. No se ha asignado un modelo de transistor ni un W/L sin un kit de diseño de proceso. En GHz importan f<sub>T</sub>, f<sub>max</sub>, C<sub>gs</sub>, C<sub>gd</sub>, la carga del buffer y las interconexiones. También deben extraerse las pérdidas y el acoplamiento de las inductancias.</p><p>C<sub>d</sub> ya reúne la capacidad diferencial equivalente del tanque, los transistores y la carga. Q es cargado y engloba las pérdidas equivalentes, incluida la conductancia de salida cuando se contabiliza en el tanque. Esas contribuciones no deben sumarse dos veces.</p><p>Las salidas oscilan alrededor de VDD y pueden superar ese nivel por la carga inductiva. Los límites de excursión y fiabilidad dependen de las tensiones entre terminales y del proceso. La web no valida esos límites ni sustituye análisis de régimen periódico, ruido de fase y extracción electromagnética.</p></div><div><h3>Resistencia negativa y arranque</h3><p>Para transistores iguales y excitación diferencial, el nodo común de las fuentes es aproximadamente una masa virtual de pequeña señal. Si v<sub>d</sub> = v₁ − v₂, la puerta de M1 recibe −v<sub>d</sub>/2 y la de M2 recibe +v<sub>d</sub>/2.</p><p class="equation">ΔI<sub>D1</sub> = −g<sub>m</sub>v<sub>d</sub>/2<br>ΔI<sub>D2</sub> = +g<sub>m</sub>v<sub>d</sub>/2<br>i<sub>d</sub> = (ΔI<sub>D1</sub> − ΔI<sub>D2</sub>)/2 = −g<sub>m</sub>v<sub>d</sub>/2</p><p class="equation">R<sub>neg,d</sub> = −2/g<sub>m</sub><br>R<sub>p,d</sub> = Qω₀L<sub>d</sub><br>g<sub>m</sub>R<sub>p,d</sub>/2 &gt; 1 para arrancar</p><p>La derivación puede consultarse en <a href="https://iic-jku.github.io/radio-frequency-integrated-circuits/slides/oscillator.html" target="_blank" rel="noopener">el curso de circuitos integrados RF de JKU</a>. Como referencia de implementación fabricada, <a href="https://www.mdpi.com/2079-9292/11/12/1897" target="_blank" rel="noopener">Yao y colaboradores presentan núcleos NMOS cruzados con medidas entre 3,7 y 10 GHz</a>. Sus prestaciones pertenecen a aquel diseño y no al ejemplo nominal de esta web.</p></div></div></details>
       </section>
 
       <section class="challenge"><div class="challenge-intro"><span class="eyebrow">ANTES DE MOVER EL CONTROL</span><h2 id="challenge-question"></h2></div><div class="challenge-options" id="challenge-options"></div><p id="challenge-feedback" aria-live="polite"></p></section>
-      <details class="model-details" id="theory-details"><summary>Un poco más de física <span>Modelo, ecuaciones y fuentes</span></summary><div class="details-grid"><div><h3>Una aproximación para aprender</h3><p>Representamos el resonador mediante un RLC paralelo con C = 100 pF, f₀ = 1/(2π√LC), G<sub>r</sub> = 1/R<sub>p</sub> = ω₀C/Q y susceptancia total nula en resonancia. El bloque activo aporta G<sub>d</sub>(A) = −gG<sub>r</sub> / [1 + (A/A<sub>s</sub>)²].</p><p class="equation">dA/dt = (ω₀/2Q) [g/(1 + (A/A<sub>s</sub>)²) − 1] A</p><p>La envolvente promediada supone una oscilación casi sinusoidal y Q suficientemente alto. La semilla inicial es 10 mV. En g = 1, la saturación hace que una amplitud finita decaiga lentamente. No se modelan transistores, armónicos, desplazamiento de frecuencia ni conversión AM–PM.</p></div><div><h3>Ruido de fase y jitter</h3><p>Usamos la convención del Tema 5 con F lineal, P<sub>s</sub> en vatios y el factor 1/2 de banda lateral única.</p><p class="equation">ℒ(Δf) = 10 log₁₀ { [FkT/(2P<sub>s</sub>)] [1 + (f₀/(2QΔf))²] [1 + f<sub>c</sub>/Δf] }</p><p class="equation">σ<sub>φ</sub>² = 2 ∫ 10<sup>ℒ(Δf)/10</sup> dΔf &nbsp; · &nbsp; σ<sub>t</sub> = σ<sub>φ</sub>/(2πf₀)</p><p>El espectro es una predicción didáctica para una portadora estacionaria. La banda de jitter va de 1 kHz al menor valor entre 1 MHz y 0,1 f₀. El límite de separación 0,1 f₀ es un margen didáctico, no una frontera física universal. El modelo de pequeña fase no describe el centro exacto de la portadora, espurias ni todos los mecanismos de ruido de un circuito real.</p><p>Basado en el Tema 5 de CSAF y en <a href="https://arxiv.org/abs/physics/0502143" target="_blank" rel="noopener">The Leeson effect, de E. Rubiola</a>. Consulta también <a href="https://www.analog.com/en/resources/analog-dialogue/articles/pll-for-high-frequency-receivers-and-transmitters-2.html" target="_blank" rel="noopener">la introducción al ruido de fase de Analog Devices</a>.</p></div></div></details>
+      <details class="model-details" id="theory-details"><summary>Un poco más de física <span>Modelo, ecuaciones y fuentes</span></summary><div class="details-grid"><div><h3>Una aproximación para aprender</h3><p>Representamos el resonador mediante un RLC paralelo con C = 1 pF, f₀ = 1/(2π√LC), G<sub>r</sub> = 1/R<sub>p</sub> = ω₀C/Q y susceptancia total nula en resonancia. El bloque activo aporta G<sub>d</sub>(A) = −gG<sub>r</sub> / [1 + (A/A<sub>s</sub>)²].</p><p class="equation">dA/dt = (ω₀/2Q) [g/(1 + (A/A<sub>s</sub>)²) − 1] A</p><p>La envolvente promediada supone una oscilación casi sinusoidal y Q suficientemente alto. La semilla inicial es 10 mV. En g = 1, la saturación hace que una amplitud finita decaiga lentamente. No se modelan transistores, armónicos, desplazamiento de frecuencia ni conversión AM–PM.</p></div><div><h3>Ruido de fase y jitter</h3><p>Usamos la convención del Tema 5 con F lineal, P<sub>s</sub> en vatios y el factor 1/2 de banda lateral única.</p><p class="equation">ℒ(Δf) = 10 log₁₀ { [FkT/(2P<sub>s</sub>)] [1 + (f₀/(2QΔf))²] [1 + f<sub>c</sub>/Δf] }</p><p class="equation">σ<sub>φ</sub>² = 2 ∫ 10<sup>ℒ(Δf)/10</sup> dΔf &nbsp; · &nbsp; σ<sub>t</sub> = σ<sub>φ</sub>/(2πf₀)</p><p>El espectro es una predicción didáctica para una portadora estacionaria. La banda de jitter va de 1 kHz al menor valor entre 1 MHz y 0,1 f₀. El límite de separación 0,1 f₀ es un margen didáctico, no una frontera física universal. El modelo de pequeña fase no describe el centro exacto de la portadora, espurias ni todos los mecanismos de ruido de un circuito real.</p><p>Basado en el Tema 5 de CSAF y en <a href="https://arxiv.org/abs/physics/0502143" target="_blank" rel="noopener">The Leeson effect, de E. Rubiola</a>. Consulta también <a href="https://www.analog.com/en/resources/analog-dialogue/articles/pll-for-high-frequency-receivers-and-transmitters-2.html" target="_blank" rel="noopener">la introducción al ruido de fase de Analog Devices</a>.</p></div></div></details>
     </div>
     <footer><span>oscila. <span class="footer-muted">Hecho para explorar el Tema 5 de CSAF</span></span><span>Modelo didáctico · Sin mediciones experimentales</span></footer>
   </main>

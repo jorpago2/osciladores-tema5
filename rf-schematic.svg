@@ -1,0 +1,88 @@
+<svg id="rf-schematic" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 640" role="img" aria-labelledby="rf-schematic-title rf-schematic-desc">
+  <title id="rf-schematic-title">Núcleo CMOS RF · ejemplo nominal de 2,4 GHz</title>
+  <desc id="rf-schematic-desc">Oscilador diferencial con dos NMOS de acoplamiento cruzado. Cada drenador conecta a VDD mediante una inductancia de 2,2 nanohenrios. Un condensador diferencial total de 1 picofaradio une ambos drenadores. La puerta de M1 conecta al drenador de M2 y la puerta de M2 al drenador de M1. El cruce de estas conexiones no tiene unión eléctrica. Las fuentes de M1 y M2 se unen al drenador del NMOS de cola M3, cuya puerta recibe Vbias y cuya fuente conecta a masa. M3 establece una corriente de cola nominal de 2 miliamperios.</desc>
+  <style>
+    .rf-wire{fill:none;stroke:#777186;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .rf-device{fill:none;stroke:#6853cf;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round}
+    .rf-cross-wire{fill:none;stroke:#8f7cc6;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+    .rf-node{fill:#6853cf}
+    .rf-region{fill:#f5f2fc;stroke:#e5def5;stroke-width:1}
+    .rf-label{font:16px "Segoe UI",Arial,sans-serif;fill:#514b60}
+    .rf-value{font:14px Consolas,"SFMono-Regular",monospace;fill:#75668f}
+    .rf-note{font:12px "Segoe UI",Arial,sans-serif;fill:#93859e}
+    .rf-title{font:15px "Segoe UI",Arial,sans-serif;fill:#6853cf;font-weight:600}
+    .rf-port{font:italic 19px Georgia,serif;fill:#6853cf}
+    .rf-pin{font:12px Consolas,monospace;fill:#93859e}
+    .rf-guide{fill:none;stroke:#b5a9cd;stroke-width:1.2;stroke-dasharray:3 4}
+    .rf-current-arrow{fill:none;stroke:#3c8071;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    [data-rf-part]{transition:opacity .18s}
+  </style>
+  <text x="425" y="27" text-anchor="middle" class="rf-title">Núcleo CMOS RF · ejemplo nominal de 2,4 GHz</text>
+  <rect x="160" y="91" width="530" height="165" rx="20" class="rf-region"/>
+  <g data-rf-part="tank">
+    <path d="M250 108V75H730V117 M600 75v33" class="rf-wire"/>
+    <circle cx="425" cy="75" r="3.5" class="rf-node"/>
+    <circle cx="600" cy="75" r="3" class="rf-node"/>
+    <text x="425" y="58" text-anchor="middle" class="rf-label">VDD = 1,8 V</text>
+    <path d="M250 108c-25 0-25 19 0 19c-25 0-25 19 0 19c-25 0-25 19 0 19c-25 0-25 19 0 19v46 M600 108c25 0 25 19 0 19c25 0 25 19 0 19c25 0 25 19 0 19c25 0 25 19 0 19v46" class="rf-wire"/>
+    <text x="281" y="137" class="rf-label">L1</text>
+    <text x="281" y="160" class="rf-value">2,2 nH</text>
+    <text x="570" y="137" text-anchor="end" class="rf-label">L2</text>
+    <text x="570" y="160" text-anchor="end" class="rf-value">2,2 nH</text>
+    <path d="M250 230H416m0-18v36m18-36v36m0-18H600" class="rf-wire"/>
+    <text id="rf-svg-cap" x="425" y="194" text-anchor="middle" class="rf-value">Cd = 1,00 pF</text>
+    <path d="M713 117h34m-34 14h34m-17 0v45m-13 0h26m-21 6h16m-12 6h8" class="rf-wire"/>
+    <text x="759" y="127" class="rf-label">Cdec</text>
+    <text x="730" y="210" text-anchor="middle" class="rf-note">Desacoplo RF</text>
+    <text x="425" y="276" text-anchor="middle" class="rf-note">Q cargado nominal = 10 · C total incluye las parásitas</text>
+  </g>
+  <g data-rf-part="port">
+    <circle cx="250" cy="230" r="4.5" class="rf-node"/>
+    <circle cx="600" cy="230" r="4.5" class="rf-node"/>
+    <text x="229" y="222" text-anchor="end" class="rf-port">v₁</text>
+    <text x="621" y="222" class="rf-port">v₂</text>
+    <text id="rf-svg-vdiff" x="425" y="305" text-anchor="middle" class="rf-value">vd = +30 mV</text>
+  </g>
+  <g data-rf-part="m1">
+    <path d="M250 230V360H270 M270 422H250V465" class="rf-wire"/>
+    <path d="M270 360v17m0 6v16m0 6v17 M300 357v68" class="rf-device"/>
+    <text x="236" y="354" text-anchor="end" class="rf-pin">D</text>
+    <text x="309" y="413" class="rf-pin">G</text>
+    <text x="236" y="440" text-anchor="end" class="rf-pin">S</text>
+    <text x="199" y="382" text-anchor="end" class="rf-label">M1 · NMOS</text>
+    <text id="rf-svg-id1" x="199" y="405" text-anchor="end" class="rf-value">ID1 = 0,940 mA</text>
+    <path d="M224 307v25m-5-6 5 6 5-6" class="rf-current-arrow"/>
+  </g>
+  <g data-rf-part="m2">
+    <path d="M600 230V360H580 M580 422H600V465" class="rf-wire"/>
+    <path d="M580 360v17m0 6v16m0 6v17 M550 357v68" class="rf-device"/>
+    <text x="614" y="354" class="rf-pin">D</text>
+    <text x="540" y="413" text-anchor="end" class="rf-pin">G</text>
+    <text x="614" y="440" class="rf-pin">S</text>
+    <text x="651" y="382" class="rf-label">M2 · NMOS</text>
+    <text id="rf-svg-id2" x="651" y="405" class="rf-value">ID2 = 1,060 mA</text>
+    <path d="M626 307v25m-5-6 5 6 5-6" class="rf-current-arrow"/>
+  </g>
+  <g data-rf-part="cross">
+    <path d="M250 300 550 390" class="rf-cross-wire"/>
+    <path d="M437 349 Q422 329 413 356" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+    <path d="M600 300 437 349 Q422 329 413 356 L300 390" class="rf-cross-wire"/>
+    <circle cx="250" cy="300" r="3.5" class="rf-node"/>
+    <circle cx="600" cy="300" r="3.5" class="rf-node"/>
+    <path d="M425 361v60" class="rf-guide"/>
+    <text x="425" y="442" text-anchor="middle" class="rf-note">Cruce sin conexión</text>
+  </g>
+  <g data-rf-part="tail">
+    <path d="M250 465H600 M425 465v28h15 M440 550H425v27 M346 522H408" class="rf-wire"/>
+    <path d="M440 493v15m0 6v15m0 6v15 M408 491v61" class="rf-device"/>
+    <circle cx="425" cy="465" r="4" class="rf-node"/>
+    <text x="330" y="526" text-anchor="end" class="rf-label">Vbias</text>
+    <text x="462" y="523" class="rf-label">M3 · NMOS de cola</text>
+    <text id="rf-svg-tail" x="462" y="547" class="rf-value">IT = 2,0 mA</text>
+    <path d="M412 577h26m-21 6h16m-12 6h8" class="rf-wire"/>
+  </g>
+  <text id="rf-svg-gm" x="165" y="515" text-anchor="middle" class="rf-value">gm = 4,0 mS por NMOS</text>
+  <text x="165" y="536" text-anchor="middle" class="rf-note">Valor de pequeña señal</text>
+  <text x="425" y="613" text-anchor="middle" class="rf-note">Esquema funcional · cuerpos y parásitos no dibujados · sin modelo de proceso</text>
+  <text x="425" y="633" text-anchor="middle" class="rf-note">Ldiff = L1 + L2 = 4,4 nH en el modelo sin acoplamiento magnético</text>
+</svg>
