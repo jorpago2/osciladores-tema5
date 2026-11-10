@@ -1,10 +1,11 @@
+import { initNic } from './nic.mjs';
 import { derived, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs';
 
 const $ = id => document.getElementById(id);
 const colors = { purple: '#6853cf', orange: '#c57b43', ink: '#514b60', muted: '#9a92a6', grid: '#eeeaf3', gray: '#bfbac9', green: '#3c8071' };
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const state = { fMHz: 10, Q: 60, gain: 1.65, vsat: 1, power: 0, nf: 6, flicker: 3, offset: 4, probe: 0.4, exaggeration: 0.45, tab: 'start', mod: 'pm' };
-const limits = { fMHz:[1,100], Q:[20,200], gain:[0,3], power:[-10,20], nf:[0,20], flicker:[0,5], offset:[2,7], probe:[0,2], exaggeration:[0,1] };
+const state = { fMHz: 10, Q: 60, gain: 1.65, vsat: 1, power: 0, nf: 6, flicker: 3, offset: 4, probe: 0.4, exaggeration: 0.45, tab: 'start', mod: 'pm', nicV: 0.2, nicRn: 6800, nicCoil: 20, nicStep: 0 };
+const limits = { nicV:[-0.5,0.5], nicRn:[6800,15000], nicCoil:[0,80], nicStep:[0,5], fMHz:[1,100], Q:[20,200], gain:[0,3], power:[-10,20], nf:[0,20], flicker:[0,5], offset:[2,7], probe:[0,2], exaggeration:[0,1] };
 let playing = !reducedMotion, energyPlaying = !reducedMotion, phasePlaying = !reducedMotion, progress = reducedMotion ? 1 : 0, elapsed = 0, lastFrame = 0, lastPaint = 0;
 let curve = [], d, duration, cycles, savedCurve = null, toastTimer;
 const trace = phaseTrace({ rmsRad: 1, count: 1200, seed: 5 });
@@ -21,10 +22,11 @@ function restoreHash() {
     const value = Number(p.get(key));
     if (Number.isFinite(value)) state[key] = Math.min(hi, Math.max(lo, value));
   }
-  if (['start','energy','noise'].includes(p.get('tab'))) state.tab = p.get('tab');
+  if (['start','energy','noise','circuit'].includes(p.get('tab'))) state.tab = p.get('tab');
   if (['pm','am'].includes(p.get('mod'))) state.mod = p.get('mod');
 }
 restoreHash();
+const nic = initNic(state);
 
 function sizeCanvas(id) {
   const canvas = $(id), width = canvas.clientWidth, height = Number(canvas.getAttribute('height'));
@@ -181,9 +183,10 @@ function drawPhase() {
   if(state.mod==='pm'){ctx.beginPath();ctx.arc(cx,cy,radius*.45,Math.min(-theta,-theta-err),Math.max(-theta,-theta-err));ctx.strokeStyle=colors.orange;ctx.lineWidth=2;ctx.stroke();}
   ctx.font='9px "Segoe UI"';ctx.textAlign='center';ctx.fillStyle=colors.muted;ctx.fillText(state.mod==='pm'?'Varía el ángulo φ':'Varía el módulo A',cx,height-9);
 }
-function draw(){if(state.tab==='start')drawStart();if(state.tab==='energy')drawEnergy();if(state.tab==='noise'){drawSpectrum();drawPhase();}}
+function draw(){if(state.tab==='circuit')nic.render();if(state.tab==='start')drawStart();if(state.tab==='energy')drawEnergy();if(state.tab==='noise'){drawSpectrum();drawPhase();}}
 
 const quizzes={
+  circuit:{question:'Si v es positiva y vo es mayor, ¿por dónde circula la corriente en RN?',answers:['De la salida al LC','Del LC a la salida','No hay corriente'],correct:0,feedback:'La corriente va desde la tensión mayor, vo, hacia la menor, v. Como la referencia i entra al NIC, su valor es negativo.'},
   start:{question:'Si la compensación baja por debajo de las pérdidas, ¿qué ocurre?',answers:['La amplitud decrece','La frecuencia se duplica','La amplitud crece'],correct:0,feedback:'La amplitud decrece porque el balance de energía es negativo. El resonador pierde más energía de la que recibe.'},
   energy:{question:'Justo por encima de la amplitud estable, ¿qué hace el circuito?',answers:['Sigue creciendo','Recupera el equilibrio','Se vuelve ideal'],correct:1,feedback:'La saturación reduce el aporte por debajo de las pérdidas. Por eso la amplitud disminuye y vuelve al punto de equilibrio.'},
   noise:{question:'Si duplicas la potencia de señal y mantienes lo demás, ¿cómo cambia ℒ?',answers:['Baja unos 3 dB','Baja unos 6 dB','No cambia'],correct:0,feedback:'La densidad relativa de ruido es inversamente proporcional a la potencia de señal. Duplicarla reduce ℒ en 10 log₁₀(2) ≈ 3,01 dB en este modelo.'}
@@ -192,11 +195,13 @@ function setTab(tab,focus=false){
   state.tab=tab;
   document.querySelectorAll('[data-tab]').forEach(b=>{const active=b.dataset.tab===tab;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;if(active&&focus)b.focus();});
   for(const key of Object.keys(quizzes))$(`panel-${key}`).hidden=key!==tab;
+  $('theory-details').hidden=tab==='circuit';
   const quiz=quizzes[tab];$('challenge-question').textContent=quiz.question;$('challenge-feedback').textContent='';$('challenge-options').replaceChildren();
   quiz.answers.forEach((answer,index)=>{const button=document.createElement('button');button.textContent=answer;button.addEventListener('click',()=>{button.classList.add(index===quiz.correct?'correct':'incorrect');$('challenge-feedback').textContent=(index===quiz.correct?'Exacto. ':'Piénsalo en términos del modelo. ')+quiz.feedback;});$('challenge-options').append(button);});
   draw();
 }
-document.querySelectorAll('[data-tab]').forEach(button=>{button.addEventListener('click',()=>setTab(button.dataset.tab));button.addEventListener('keydown',event=>{const tabs=['start','energy','noise'],index=tabs.indexOf(state.tab);let next;if(event.key==='ArrowRight')next=tabs[(index+1)%3];if(event.key==='ArrowLeft')next=tabs[(index+2)%3];if(event.key==='Home')next=tabs[0];if(event.key==='End')next=tabs[2];if(next){event.preventDefault();setTab(next,true);}});});
+document.querySelectorAll('[data-tab]').forEach(button=>{button.addEventListener('click',()=>setTab(button.dataset.tab));button.addEventListener('keydown',event=>{const tabs=['start','energy','noise','circuit'],index=tabs.indexOf(state.tab);let next;if(event.key==='ArrowRight')next=tabs[(index+1)%tabs.length];if(event.key==='ArrowLeft')next=tabs[(index+tabs.length-1)%tabs.length];if(event.key==='Home')next=tabs[0];if(event.key==='End')next=tabs.at(-1);if(next){event.preventDefault();setTab(next,true);}});});
+document.querySelectorAll('[data-open-circuit]').forEach(button=>button.addEventListener('click',()=>{setTab('circuit',true);$('lab').scrollIntoView({block:'start'});}));
 const bindings={gain:'gain','energy-gain':'gain',q:'Q','noise-q':'Q',freq:'fMHz','noise-freq':'fMHz',probe:'probe',power:'power',nf:'nf',flicker:'flicker',offset:'offset',exaggeration:'exaggeration'};
 for(const [id,key]of Object.entries(bindings))$(id).addEventListener('input',event=>{state[key]=Number(event.target.value);if(['gain','Q','fMHz'].includes(key))recalculate();else{syncControls();draw();}});
 document.querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{state.gain={off:.65,threshold:1,on:1.65}[button.dataset.preset];recalculate(true);playing=!reducedMotion;if(reducedMotion)progress=1;updatePlay();draw();}));

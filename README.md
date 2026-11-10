@@ -9,6 +9,7 @@ Laboratorio interactivo para estudiar el arranque, la estabilización de amplitu
 - **Arranque** muestra cómo evoluciona una pequeña perturbación inicial. Modifica la aportación del bloque activo para pasar del decaimiento al crecimiento y observa la estabilización de la envolvente.
 - **Equilibrio** relaciona la amplitud con la conductancia activa y el balance de potencia del resonador. Permite localizar el punto donde la energía aportada compensa las pérdidas.
 - **Ruido de fase** representa la densidad espectral relativa a la portadora. Compara el efecto de Q, la potencia de señal, el factor de ruido y la esquina de flicker. Puedes conservar una curva de referencia y exportar datos en CSV.
+- **Circuito real** desarrolla un ejemplo con operacional mediante seis pasos y un esquema que destaca los componentes implicados. Permite cambiar el signo de la tensión, comprobar la corriente entregada y observar cómo las pérdidas de la bobina afectan al arranque.
 
 Una secuencia útil consiste en comparar valores de g inferiores y superiores a uno, localizar la amplitud de equilibrio y duplicar Q manteniendo g constante. Después, en la vista de ruido, puede estudiarse cómo cambia el espectro al aumentar Q o la potencia de señal.
 
@@ -30,6 +31,36 @@ $$
 La semilla inicial es de 10 mV y Vₛ = 1 V. Para g > 1, la amplitud estable es Aₑ = Vₛ√(g − 1). Para g < 1, la perturbación decae. En g = 1, la compensación solo es exacta en el límite de pequeña señal, de modo que una amplitud finita también decae lentamente por la saturación.
 
 La envolvente se obtiene mediante la integral implícita de la ecuación y una búsqueda en escala logarítmica. Con una semilla exactamente nula permanecería en cero, ya que esta ecuación no inyecta ruido continuo. Se supone una oscilación casi sinusoidal y Q suficientemente alto. El modelo no incluye transistores, armónicos, desplazamiento de frecuencia ni conversión AM–PM.
+
+## Circuito con un operacional
+
+El ejemplo utiliza un OPA197 alimentado a ±5 V como convertidor de impedancia negativa. El nodo del resonador se conecta a la entrada no inversora. La entrada inversora tiene Rg = 10 kΩ a masa y una realimentación desde la salida formada por Rf1 = 3,3 kΩ y Rf2 = 6,8 kΩ en serie. Dos diodos 1N4148 en antiparalelo puentean Rf2. La resistencia RN, inicialmente de 6,8 kΩ, conecta la salida con el nodo del resonador. Se proponen condensadores de desacoplo de 100 nF desde cada alimentación a masa.
+
+Con señal pequeña, los diodos apenas conducen y la ganancia no inversora es K = 2,01. Como la salida tiene mayor magnitud que la tensión del resonador, RN devuelve corriente hacia él. Definiendo i como la corriente que entra al bloque activo, se obtiene
+
+$$
+v_o=Kv,\qquad i=\frac{v-v_o}{R_N}
+=-\frac{K-1}{R_N}v,\qquad
+R_\mathrm{neg}=-\frac{R_N}{K-1}.
+$$
+
+Los valores iniciales dan Rneg ≈ −6,733 kΩ. Al invertir el signo de v, también se invierten la salida y la corriente, por lo que el producto v·i sigue siendo negativo. La energía entregada al resonador procede de las fuentes de alimentación del operacional.
+
+El resonador usa L = 10 mH, C = 10 nF y un resistor externo Rp = 10 kΩ. Las pérdidas de la bobina se representan mediante una resistencia serie rL, cuyo valor inicial de 20 Ω es una hipótesis del ejemplo y no la especificación de un componente seleccionado. A la frecuencia de cancelación de susceptancias se cumple
+
+$$
+\omega_r^2=\frac{1}{LC}-\left(\frac{r_L}{L}\right)^2,
+\qquad G_\mathrm{pérdidas}=\frac{1}{R_p}+\frac{r_LC}{L},
+\qquad g_0=\frac{(K-1)/R_N}{G_\mathrm{pérdidas}}.
+$$
+
+Con los ajustes iniciales, la resonancia queda en unos 15,912 kHz y g₀ ≈ 1,238. El aporte nominal supera las pérdidas y permite el arranque. Manteniendo los demás valores, el umbral se alcanza cuando rL ≈ 48,53 Ω. La aproximación de alto Q del resonador es Q ≈ 8,33 con las pérdidas iniciales, sin interpretar este valor como una extracción exacta de su ancho de banda.
+
+Cuando aumenta la amplitud, los diodos conducen alternativamente y reducen la contribución de Rf2. La ganancia incremental tiende a 1 + Rf1/Rg = 1,33. El modelo aproxima los diodos mediante una caída fija de 0,6 V y calcula la componente fundamental de la corriente para una tensión sinusoidal. El balance armónico predice una amplitud de unos 1,47 V de pico en el resonador con los valores iniciales. Esta cifra es una estimación del modelo, sin incluir la dinámica del OPA197 ni la característica real de los diodos.
+
+El circuito es una propuesta concreta para explicar el mecanismo y no se ha construido ni validado experimentalmente. Para montarlo hay que comprobar las pérdidas y la autorresonancia de la bobina, la carga de medida, el desacoplo y los límites del operacional. Esta vista trabaja alrededor de 16 kHz y mantiene sus parámetros independientes de los controles en MHz de las otras tres pestañas.
+
+La topología se explica en [el curso de electrónica de Analog Devices](https://wiki.analog.com/university/courses/electronics/text/chapter-4#negative_impedance_converter). Las hojas de datos del [OPA197](https://www.ti.com/lit/ds/symlink/opa197.pdf) y de la [1N4148](https://www.vishay.com/docs/81857/1n4148.pdf) describen sus límites, encapsulados y comportamiento real.
 
 ## Ruido de fase y jitter
 
@@ -71,6 +102,6 @@ Abre [la vista local](http://127.0.0.1:4173) en el navegador. Para ejecutar las 
 npm test
 ```
 
-Los 14 tests comprueban las relaciones del resonador, el umbral y el equilibrio, el decaimiento, la ecuación diferencial de la envolvente, el escalado con Q, los límites del espectro, la conversión a jitter y la reproducibilidad de la traza conceptual. La integral analítica se contrasta con una cuadratura independiente. Son comprobaciones del modelo matemático y del código, sin validación experimental de un circuito físico.
+Los 26 tests comprueban las relaciones del resonador, el umbral y el equilibrio, el decaimiento, la ecuación diferencial de la envolvente, el escalado con Q, los límites del espectro, la conversión a jitter y la reproducibilidad de la traza conceptual. También verifican las corrientes del NIC, su simetría, la limitación con diodos, la conductancia fundamental y el efecto de las pérdidas de la bobina. La integral analítica de ruido se contrasta con una cuadratura independiente y la cuadratura del NIC se compara con la expresión analítica de una senoide recortada. Son comprobaciones del modelo matemático y del código, sin validación experimental de un circuito físico.
 
-La interfaz está en `index.html`, `style.css` y `app.mjs`. El modelo independiente está en `model.mjs`, sus pruebas en `model.test.mjs` y el servidor local en `serve.mjs`. GitHub Pages sirve directamente estos archivos estáticos.
+La interfaz general está en `index.html`, `style.css` y `app.mjs`. El modelo de envolvente y ruido está en `model.mjs`, con sus pruebas en `model.test.mjs`. La vista del circuito está en `nic.mjs` y utiliza `nic-model.mjs`, cuyas pruebas están en `nic-model.test.mjs`. El servidor local está en `serve.mjs`. GitHub Pages sirve directamente estos archivos estáticos.

@@ -8,6 +8,7 @@
   <title>Oscila · Laboratorio de osciladores</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./nic.css">
   <script type="module" src="./app.mjs"></script>
 </head>
 <body>
@@ -20,13 +21,14 @@
   <main>
     <section class="intro">
       <div><p class="eyebrow">UN LABORATORIO PARA ENTENDER, TOCANDO</p><h1>De una pequeña perturbación<br>a una <em>oscilación sostenida.</em></h1><p class="intro-copy">Aporta energía, encuentra el equilibrio y descubre por qué ningún reloj es perfecto.</p></div>
-      <div class="intro-note"><span class="spark">∿</span><p>Un circuito.<br>Tres formas de mirarlo.</p><span>Explora a tu ritmo</span></div>
+      <div class="intro-note"><span class="spark">∿</span><p>De la idea<br>al circuito.</p><span>Explora a tu ritmo</span></div>
     </section>
     <div class="lab-heading"><div class="lab-label"><span class="live-dot"></span> TU BANCO DE PRUEBAS</div><button class="text-button" id="share">Copiar enlace con ajustes <span aria-hidden="true">↗</span></button></div>
     <nav class="tabs" aria-label="Vistas del laboratorio" role="tablist">
       <button id="tab-start" role="tab" aria-selected="true" aria-controls="panel-start" data-tab="start"><span>01</span> El arranque</button>
       <button id="tab-energy" role="tab" aria-selected="false" aria-controls="panel-energy" data-tab="energy" tabindex="-1"><span>02</span> El equilibrio</button>
       <button id="tab-noise" role="tab" aria-selected="false" aria-controls="panel-noise" data-tab="noise" tabindex="-1"><span>03</span> El ruido de fase</button>
+      <button id="tab-circuit" role="tab" aria-selected="false" aria-controls="panel-circuit" data-tab="circuit" tabindex="-1"><span>04</span> Circuito real</button>
     </nav>
     <div id="lab">
       <section id="panel-start" role="tabpanel" aria-labelledby="tab-start" class="panel">
@@ -52,6 +54,7 @@
                 </svg>
               </div>
               <p class="caption">El bloque activo recibe energía de la alimentación. Visto desde el resonador, se comporta como una resistencia negativa.</p>
+              <button class="outline-button nic-open-button" data-open-circuit>Ver cómo se construye con un operacional →</button>
             </article>
             <article class="card scope-card">
               <div class="card-head"><div><p class="eyebrow">DEL RUIDO AL RÉGIMEN PERMANENTE</p><h2>La amplitud cuenta la historia</h2></div><div class="transport"><button id="play" class="icon-button" aria-label="Pausar animación">Ⅱ</button><button id="restart" class="icon-button" aria-label="Reiniciar arranque">↺</button></div></div>
@@ -101,8 +104,85 @@
           <p class="field-help" id="noise-assumptions"></p>
         </aside></div>
       </section>
+      <section id="panel-circuit" role="tabpanel" aria-labelledby="tab-circuit" class="panel" hidden>
+        <div class="nic-intro"><div><p class="eyebrow">DEL BLOQUE EQUIVALENTE A LOS COMPONENTES</p><h2>Una resistencia negativa hecha con un operacional</h2><p>El amplificador eleva la tensión de salida y, a través de R<sub>N</sub>, devuelve corriente al resonador. Sigue el recorrido y comprueba el signo de esa corriente.</p></div><span class="nic-frequency">≈ 16 kHz <small>Ejemplo independiente de las vistas en MHz</small></span></div>
+        <div class="workspace nic-workspace"><div class="visual-column">
+          <article class="card nic-schematic-card">
+            <div class="card-head"><div><p class="eyebrow">NIC · CONVERTIDOR DE IMPEDANCIA NEGATIVA</p><h2>OPA197 en configuración no inversora</h2></div><button id="nic-show-all" class="text-button">Ver todo el circuito</button></div>
+            <div class="nic-diagram-scroll" tabindex="0" role="region" aria-label="Esquema completo del NIC. En pantallas pequeñas puede desplazarse horizontalmente.">
+              <svg id="nic-schematic" class="nic-schematic" viewBox="0 0 850 530" role="img" aria-labelledby="nic-svg-title nic-svg-description">
+                <title id="nic-svg-title">Oscilador LC con OPA197, resistencia de retorno y limitador con diodos</title>
+                <desc id="nic-svg-description">El nodo v conecta L, C y Rp a masa y a la entrada no inversora del OPA197. RN conecta la salida a ese nodo. La entrada inversora conecta a masa mediante Rg y a la salida mediante Rf1 y Rf2 en serie. Dos diodos antiparalelo puentean Rf2. Alimentación más y menos cinco voltios.</desc>
+                <defs><marker id="nic-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="currentColor"/></marker></defs>
+                <rect x="25" y="155" width="265" height="330" rx="18" class="nic-region"/>
+                <text x="155" y="181" text-anchor="middle" class="nic-kicker">RESONADOR Y PÉRDIDAS</text>
+                <g data-nic-part="resonator">
+                  <path d="M70 210H310 M70 450H250" class="nic-wire"/>
+                  <path d="M70 210v30c-20 0-20 15 0 15c-20 0-20 15 0 15c-20 0-20 15 0 15c-20 0-20 15 0 15v30m0 42v78" class="nic-wire"/>
+                  <rect x="61" y="330" width="18" height="42" class="nic-resistor loss"/>
+                  <text x="88" y="269" class="nic-label">L</text><text x="88" y="287" class="nic-value">10 mH</text><text x="88" y="346" class="nic-label">r<tspan baseline-shift="sub" font-size="9">L</tspan></text><text id="nic-svg-coil" x="88" y="365" class="nic-value">20 Ω</text>
+                  <path d="M160 210v99m-18 0h36m-36 13h36m-18 0v128" class="nic-wire"/>
+                  <text x="179" y="304" class="nic-label">C</text><text x="179" y="340" class="nic-value">10 nF</text>
+                  <path d="M250 210v85m0 46v109" class="nic-wire"/><rect x="241" y="295" width="18" height="46" class="nic-resistor loss"/>
+                  <text x="265" y="310" class="nic-label">R<tspan baseline-shift="sub" font-size="9">p</tspan></text><text x="265" y="331" class="nic-value">10 kΩ</text>
+                  <path d="M160 450v15m-13 0h26m-21 6h16m-12 6h8" class="nic-wire"/>
+                  <circle cx="70" cy="210" r="3"/><circle cx="160" cy="210" r="3"/><circle cx="250" cy="210" r="3"/><circle cx="160" cy="450" r="3"/>
+                </g>
+                <g data-nic-part="port">
+                  <path d="M310 210H425" class="nic-wire"/><circle cx="310" cy="210" r="5" class="nic-node"/><text x="328" y="194" class="nic-port-label">v</text><text id="nic-svg-v" x="334" y="235" class="nic-value">+0,20 V</text>
+                </g>
+                <g data-nic-part="amp">
+                  <path d="M425 172 570 240 425 308Z" class="nic-opamp"/><text x="439" y="218" class="nic-sign">+</text><text x="439" y="276" class="nic-sign">−</text><text x="479" y="244" class="nic-label">OPA197</text><text x="411" y="203" class="nic-pin">3</text><text x="411" y="262" class="nic-pin">2</text><text x="573" y="232" class="nic-pin">6</text>
+                  <path d="M570 240H755" class="nic-wire"/><circle cx="755" cy="240" r="4" class="nic-node"/><text x="769" y="235" class="nic-port-label">v<tspan baseline-shift="sub" font-size="10">o</tspan></text><text id="nic-svg-vo" x="769" y="257" class="nic-value">+0,40 V</text>
+                  <path d="M480 198V148 M480 282v43" class="nic-wire supply"/><text x="480" y="137" text-anchor="middle" class="nic-value">+5 V</text><text x="480" y="345" text-anchor="middle" class="nic-value">−5 V</text><text x="488" y="180" class="nic-pin">7</text><text x="488" y="310" class="nic-pin">4</text>
+                </g>
+                <g data-nic-part="rn">
+                  <path d="M310 210V82H495 M560 82H755V240" class="nic-wire"/><rect x="495" y="73" width="65" height="18" class="nic-resistor"/>
+                  <text x="527" y="52" text-anchor="middle" class="nic-label">R<tspan baseline-shift="sub" font-size="9">N</tspan></text><text id="nic-svg-rn" x="527" y="116" text-anchor="middle" class="nic-value">6,8 kΩ</text>
+                  <path d="M351 64h65" class="nic-current-reference" marker-end="url(#nic-arrow)"/><text x="380" y="46" text-anchor="middle" class="nic-kicker">i ENTRANDO AL NIC</text>
+                  <path id="nic-current-flow" d="M685 103H610" class="nic-current-flow" marker-end="url(#nic-arrow)"/><text id="nic-svg-i" x="670" y="128" text-anchor="middle" class="nic-value">−29,7 µA</text>
+                </g>
+                <g data-nic-part="feedback">
+                  <path d="M425 270H375V390H435 M490 390H555 M625 390H755V240 M375 390v35m0 48v17" class="nic-wire"/>
+                  <rect x="435" y="381" width="55" height="18" class="nic-resistor"/><text x="462" y="370" text-anchor="middle" class="nic-label">R<tspan baseline-shift="sub" font-size="9">f1</tspan></text><text x="462" y="420" text-anchor="middle" class="nic-value">3,3 kΩ</text>
+                  <rect x="555" y="381" width="70" height="18" class="nic-resistor"/><text x="590" y="420" text-anchor="middle" class="nic-label">R<tspan baseline-shift="sub" font-size="9">f2</tspan> = 6,8 kΩ</text>
+                  <rect x="366" y="425" width="18" height="48" class="nic-resistor"/><text x="401" y="449" class="nic-label">R<tspan baseline-shift="sub" font-size="9">g</tspan></text><text x="401" y="469" class="nic-value">10 kΩ</text><path d="M362 490h26m-21 6h16m-12 6h8" class="nic-wire"/>
+                  <circle cx="375" cy="390" r="3"/><circle cx="755" cy="240" r="3"/>
+                </g>
+                <g data-nic-part="limit">
+                  <path d="M530 390V310H575 M605 310H655V390 M530 345H575 M605 345H655" class="nic-wire"/>
+                  <path d="M575 301 595 310 575 319Z M600 301v18 M575 310h-1m21 0h9 M605 336 585 345 605 354Z M580 336v18 M575 345h9m21 0h1" class="nic-diode"/>
+                  <circle cx="530" cy="390" r="3"/><circle cx="655" cy="390" r="3"/><circle cx="530" cy="345" r="3"/><circle cx="655" cy="345" r="3"/>
+                  <text x="670" y="314" class="nic-value">D1</text><text x="670" y="350" class="nic-value">D2</text><text x="590" y="290" text-anchor="middle" class="nic-kicker">1N4148 EN ANTIPARALELO</text>
+                </g>
+                <text x="563" y="478" class="nic-value">100 nF desde cada alimentación a masa</text><text x="563" y="497" class="nic-kicker">CERCA DEL OPA197 · PINES PARA SOIC-8</text>
+              </svg>
+            </div>
+            <p class="caption nic-scroll-hint">En móvil, desliza el esquema para ver todos los componentes.</p>
+            <p class="caption">R<sub>p</sub> es un resistor externo. r<sub>L</sub> representa la pérdida serie equivalente de la bobina a la frecuencia de trabajo. El control de tensión indica un instante de la oscilación, sin añadir un generador al circuito.</p>
+          </article>
+          <article class="card nic-walkthrough">
+            <div class="card-head"><div><p class="eyebrow">SIGUE EL FUNCIONAMIENTO</p><h2>Del voltaje a la corriente que sostiene la oscilación</h2></div><span class="pill" id="nic-step-count">Paso 1 de 6</span></div>
+            <div class="nic-step-nav" aria-label="Pasos de funcionamiento"><button data-nic-step="0" aria-pressed="true">1 <span>La señal</span></button><button data-nic-step="1" aria-pressed="false">2 <span>La ganancia</span></button><button data-nic-step="2" aria-pressed="false">3 <span>La corriente</span></button><button data-nic-step="3" aria-pressed="false">4 <span>El signo</span></button><button data-nic-step="4" aria-pressed="false">5 <span>El arranque</span></button><button data-nic-step="5" aria-pressed="false">6 <span>El límite</span></button></div>
+            <div class="nic-step-body" aria-live="polite"><h3 id="nic-step-title"></h3><p id="nic-step-text"></p><div class="nic-step-equation" id="nic-step-equation"></div><p id="nic-step-example"></p></div>
+            <div class="nic-step-actions"><button class="outline-button" id="nic-prev">← Anterior</button><button class="primary-button" id="nic-next">Siguiente paso →</button></div>
+          </article>
+          <article class="card nic-iv-card"><div class="card-head"><div><p class="eyebrow">LA PENDIENTE ES NEGATIVA</p><h2>Una corriente con el signo contrario al voltaje</h2></div><span class="pill">Diodos sin conducir</span></div><svg id="nic-iv" class="nic-iv" viewBox="0 0 700 235" role="img" aria-label="Recta de corriente entrante frente a tensión, con pendiente negativa, y punto de trabajo seleccionado"></svg><p class="caption">La flecha i del esquema fija el sentido positivo hacia el NIC. Un valor negativo indica corriente desde el amplificador al resonador. En ambos semiciclos, v·i &lt; 0 indica entrega de potencia por el puerto activo.</p></article>
+        <article class="card nic-limiter-card"><div class="card-head"><div><p class="eyebrow">ESTABILIZACIÓN DE LA AMPLITUD</p><h2>Los diodos reducen el aporte antes de llegar a los raíles</h2></div><span class="pill">Aproximación por tramos</span></div><div class="nic-limiter-layout"><div><svg id="nic-limiter-chart" viewBox="0 0 660 235" role="img" aria-label="Compensación de pérdidas en función de la amplitud, con y sin diodos, y amplitud de equilibrio aproximada"></svg><div class="plot-key"><span class="legend purple-key">Con D1 y D2</span><span class="legend gray-key">Sin limitación</span><span class="legend orange-key">Pérdidas = 1</span></div></div><div><p>Con poca señal, ambos diodos están prácticamente abiertos y K ≈ 2,01. Cuando crece la tensión sobre R<sub>f2</sub>, los diodos conducen alternativamente y reducen su contribución al retorno.</p><p>La ganancia incremental tiende a 1 + R<sub>f1</sub>/R<sub>g</sub> = 1,33. Así disminuye la componente de corriente que aporta energía a la oscilación.</p><p id="nic-amplitude-result" class="nic-numeric-note"></p><p class="caption">Estimación mediante la componente fundamental para una tensión sinusoidal. Los diodos se aproximan con una caída de 0,6 V. El resultado no incluye el modelo dinámico del OPA197 ni sustituye una simulación de circuito.</p></div></div></article>
+        </div>
+        <aside class="card controls nic-controls"><h2>Comprueba los números</h2><p class="control-intro">Cambia el signo de v y observa la salida y la corriente. Después, aumenta las pérdidas de la bobina.</p>
+          <label class="slider-label" for="nic-voltage">Tensión instantánea v <output id="nic-voltage-out"></output></label><input id="nic-voltage" type="range" min="-0.5" max="0.5" value="0.2" step="0.01"><div class="range-labels"><span>Semiciclo negativo</span><span>Semiciclo positivo</span></div>
+          <label class="slider-label" for="nic-rn"><span>Resistencia R<sub>N</sub></span> <output id="nic-rn-out"></output></label><input id="nic-rn" type="range" min="6800" max="15000" value="6800" step="100">
+          <label class="slider-label" for="nic-coil"><span>Pérdida serie r<sub>L</sub></span> <output id="nic-coil-out"></output></label><input id="nic-coil" type="range" min="0" max="80" value="20" step="1">
+          <div class="nic-readouts"><div><span>Ganancia de pequeña señal</span><strong>K = 2,01</strong></div><div><span>Salida v<sub>o</sub></span><strong id="nic-out-v"></strong></div><div><span>Corriente entrante i</span><strong id="nic-out-i"></strong></div><div><span>Resistencia vista por el LC</span><strong id="nic-out-r"></strong></div><div><span>Potencia absorbida v·i</span><strong id="nic-out-p"></strong></div></div>
+          <div id="nic-start-status" class="status-box" aria-live="polite"></div><button id="nic-reset" class="outline-button">Restaurar el ejemplo</button>
+          <div class="takeaway"><span>DOS REALIMENTACIONES</span><p>R<sub>f1</sub>, R<sub>f2</sub> y R<sub>g</sub> fijan la ganancia mediante realimentación negativa local. R<sub>N</sub> devuelve corriente al resonador y produce la resistencia negativa vista desde v.</p></div>
+        </aside></div>
+        <details class="model-details nic-details"><summary>Componentes, cálculo y límites del ejemplo <span>Para llevarlo al laboratorio</span></summary><div class="details-grid"><div><h3>Montaje propuesto</h3><p>Usa un OPA197 con alimentación simétrica de ±5 V y dos condensadores de desacoplo de 100 nF, uno desde cada alimentación a masa. El esquema indica los pines del encapsulado SOIC-8. Comprueba el pinout si utilizas otro encapsulado.</p><p>La red usa R<sub>g</sub> = 10 kΩ, R<sub>f1</sub> = 3,3 kΩ y R<sub>f2</sub> = 6,8 kΩ, junto con dos diodos 1N4148 en antiparalelo sobre R<sub>f2</sub>. El valor inicial de R<sub>N</sub> es 6,8 kΩ. El resonador tiene L = 10 mH y C = 10 nF, con un resistor externo R<sub>p</sub> = 10 kΩ.</p><p>r<sub>L</sub> reúne las pérdidas de la bobina a unos 16 kHz. El valor inicial de 20 Ω es una hipótesis del ejemplo, no la especificación de una bobina seleccionada. La resistencia en continua por sí sola puede infravalorar las pérdidas de núcleo y de alta frecuencia.</p><p>Las resistencias y la carga de medida modifican el margen de arranque. Comprueba la impedancia real de la bobina, su frecuencia de autorresonancia, el desacoplo y la carga de la sonda. La bobina proporciona el camino de continua del nodo v a masa. No se ha construido ni validado experimentalmente este montaje.</p></div><div><h3>Relación con el modelo equivalente</h3><p>Mientras los diodos no conducen y el operacional mantiene su realimentación local, v<sub>−</sub> ≈ v<sub>+</sub> = v. La corriente de entrada del operacional se desprecia.</p><p class="equation">K = 1 + (R<sub>f1</sub> + R<sub>f2</sub>)/R<sub>g</sub><br>i = (v − v<sub>o</sub>)/R<sub>N</sub> = −(K − 1)v/R<sub>N</sub><br>R<sub>neg</sub> = −R<sub>N</sub>/(K − 1)</p><p>Para la bobina con pérdida serie, la cancelación de susceptancias se produce a ω<sub>r</sub>² = 1/(LC) − (r<sub>L</sub>/L)². En esa frecuencia, G<sub>pérdidas</sub> = 1/R<sub>p</sub> + r<sub>L</sub>C/L. El arranque nominal requiere (K − 1)/R<sub>N</sub> &gt; G<sub>pérdidas</sub>.</p><p>La topología se describe en <a href="https://wiki.analog.com/university/courses/electronics/text/chapter-4#negative_impedance_converter" target="_blank" rel="noopener">el curso de electrónica de Analog Devices</a>. Consulta las hojas de datos del <a href="https://www.ti.com/lit/ds/symlink/opa197.pdf" target="_blank" rel="noopener">OPA197</a> y de la <a href="https://www.vishay.com/docs/81857/1n4148.pdf" target="_blank" rel="noopener">1N4148</a> para límites, encapsulados y comportamiento real. Los parámetros nominales de esta vista son independientes de los controles de las otras pestañas.</p></div></div></details>
+      </section>
+
       <section class="challenge"><div class="challenge-intro"><span class="eyebrow">ANTES DE MOVER EL CONTROL</span><h2 id="challenge-question"></h2></div><div class="challenge-options" id="challenge-options"></div><p id="challenge-feedback" aria-live="polite"></p></section>
-      <details class="model-details"><summary>Un poco más de física <span>Modelo, ecuaciones y fuentes</span></summary><div class="details-grid"><div><h3>Una aproximación para aprender</h3><p>Representamos el resonador mediante un RLC paralelo con C = 100 pF, f₀ = 1/(2π√LC), G<sub>r</sub> = 1/R<sub>p</sub> = ω₀C/Q y susceptancia total nula en resonancia. El bloque activo aporta G<sub>d</sub>(A) = −gG<sub>r</sub> / [1 + (A/A<sub>s</sub>)²].</p><p class="equation">dA/dt = (ω₀/2Q) [g/(1 + (A/A<sub>s</sub>)²) − 1] A</p><p>La envolvente promediada supone una oscilación casi sinusoidal y Q suficientemente alto. La semilla inicial es 10 mV. En g = 1, la saturación hace que una amplitud finita decaiga lentamente. No se modelan transistores, armónicos, desplazamiento de frecuencia ni conversión AM–PM.</p></div><div><h3>Ruido de fase y jitter</h3><p>Usamos la convención del Tema 5 con F lineal, P<sub>s</sub> en vatios y el factor 1/2 de banda lateral única.</p><p class="equation">ℒ(Δf) = 10 log₁₀ { [FkT/(2P<sub>s</sub>)] [1 + (f₀/(2QΔf))²] [1 + f<sub>c</sub>/Δf] }</p><p class="equation">σ<sub>φ</sub>² = 2 ∫ 10<sup>ℒ(Δf)/10</sup> dΔf &nbsp; · &nbsp; σ<sub>t</sub> = σ<sub>φ</sub>/(2πf₀)</p><p>El espectro es una predicción didáctica para una portadora estacionaria. La banda de jitter va de 1 kHz al menor valor entre 1 MHz y 0,1 f₀. El límite de separación 0,1 f₀ es un margen didáctico, no una frontera física universal. El modelo de pequeña fase no describe el centro exacto de la portadora, espurias ni todos los mecanismos de ruido de un circuito real.</p><p>Basado en el Tema 5 de CSAF y en <a href="https://arxiv.org/abs/physics/0502143" target="_blank" rel="noopener">The Leeson effect, de E. Rubiola</a>. Consulta también <a href="https://www.analog.com/en/resources/analog-dialogue/articles/pll-for-high-frequency-receivers-and-transmitters-2.html" target="_blank" rel="noopener">la introducción al ruido de fase de Analog Devices</a>.</p></div></div></details>
+      <details class="model-details" id="theory-details"><summary>Un poco más de física <span>Modelo, ecuaciones y fuentes</span></summary><div class="details-grid"><div><h3>Una aproximación para aprender</h3><p>Representamos el resonador mediante un RLC paralelo con C = 100 pF, f₀ = 1/(2π√LC), G<sub>r</sub> = 1/R<sub>p</sub> = ω₀C/Q y susceptancia total nula en resonancia. El bloque activo aporta G<sub>d</sub>(A) = −gG<sub>r</sub> / [1 + (A/A<sub>s</sub>)²].</p><p class="equation">dA/dt = (ω₀/2Q) [g/(1 + (A/A<sub>s</sub>)²) − 1] A</p><p>La envolvente promediada supone una oscilación casi sinusoidal y Q suficientemente alto. La semilla inicial es 10 mV. En g = 1, la saturación hace que una amplitud finita decaiga lentamente. No se modelan transistores, armónicos, desplazamiento de frecuencia ni conversión AM–PM.</p></div><div><h3>Ruido de fase y jitter</h3><p>Usamos la convención del Tema 5 con F lineal, P<sub>s</sub> en vatios y el factor 1/2 de banda lateral única.</p><p class="equation">ℒ(Δf) = 10 log₁₀ { [FkT/(2P<sub>s</sub>)] [1 + (f₀/(2QΔf))²] [1 + f<sub>c</sub>/Δf] }</p><p class="equation">σ<sub>φ</sub>² = 2 ∫ 10<sup>ℒ(Δf)/10</sup> dΔf &nbsp; · &nbsp; σ<sub>t</sub> = σ<sub>φ</sub>/(2πf₀)</p><p>El espectro es una predicción didáctica para una portadora estacionaria. La banda de jitter va de 1 kHz al menor valor entre 1 MHz y 0,1 f₀. El límite de separación 0,1 f₀ es un margen didáctico, no una frontera física universal. El modelo de pequeña fase no describe el centro exacto de la portadora, espurias ni todos los mecanismos de ruido de un circuito real.</p><p>Basado en el Tema 5 de CSAF y en <a href="https://arxiv.org/abs/physics/0502143" target="_blank" rel="noopener">The Leeson effect, de E. Rubiola</a>. Consulta también <a href="https://www.analog.com/en/resources/analog-dialogue/articles/pll-for-high-frequency-receivers-and-transmitters-2.html" target="_blank" rel="noopener">la introducción al ruido de fase de Analog Devices</a>.</p></div></div></details>
     </div>
     <footer><span>oscila. <span class="footer-muted">Hecho para explorar el Tema 5 de CSAF</span></span><span>Modelo didáctico · Sin mediciones experimentales</span></footer>
   </main>
