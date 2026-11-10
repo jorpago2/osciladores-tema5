@@ -1,4 +1,4 @@
-import { initNic } from './nic.mjs';
+import { initNic } from './nic.mjs?v=20261110-nic1';
 import { derived, simulateEnvelope, phaseNoiseDb, integratedJitter, phaseTrace } from './model.mjs';
 
 const $ = id => document.getElementById(id);

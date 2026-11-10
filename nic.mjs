@@ -1,4 +1,4 @@
-import { nicValues, nicPoint, effectiveCompensation, equilibriumAmplitude } from './nic-model.mjs';
+import { nicValues, nicPoint, effectiveCompensation, equilibriumAmplitude } from './nic-model.mjs?v=20261110-nic1';
 
 /** The physical-component example deliberately has its own parameters. */
 export function initNic(state) {
